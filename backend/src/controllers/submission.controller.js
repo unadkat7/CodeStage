@@ -12,16 +12,22 @@ const createSubmission = async (req, res) => {
       status: "Pending",
     });
 
-    // Evaluate submission
     const result = await evaluateSubmission(submission);
 
     submission.status = result.status;
     submission.output = result.output;
+    submission.executionTime = result.executionTime;
+    submission.memoryUsed = result.memoryUsed;
     await submission.save();
 
-    res.status(201).json(submission);
+    return res.status(201).json(submission);
+
   } catch (error) {
-    res.status(500).json({ message: "Error creating submission" });
+    console.error("Submission Controller Error:", error);
+    return res.status(500).json({
+      message: "Error creating submission",
+      error: error.message
+    });
   }
 };
 

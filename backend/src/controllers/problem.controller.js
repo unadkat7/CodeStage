@@ -21,10 +21,23 @@ const getAllProblems = async (req, res) => {
 const getProblemById = async (req, res) => {
   try {
     const problem = await Problem.findById(req.params.id);
-    if (!problem) {
-      return res.status(404).json({ message: "Problem not found" });
-    }
-    res.status(200).json(problem);
+
+  if (!problem) {
+    return res.status(404).json({ message: "Problem not found" });
+  }
+
+  // Filter only visible test cases
+  const visibleTestCases = problem.testCases
+  .filter(tc => !tc.isHidden)
+  .map(tc => ({
+    input: tc.input,
+    output: tc.output,
+  }));
+
+  res.json({
+    ...problem.toObject(),
+    testCases: visibleTestCases,
+});
   } catch (error) {
     res.status(500).json({ message: "Error fetching problem" });
   }

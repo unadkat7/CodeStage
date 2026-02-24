@@ -20,7 +20,7 @@ const createSubmission = async (req, res) => {
     submission.memoryUsed = result.memoryUsed;
     await submission.save();
 
-    return res.status(201).json(submission);
+    return res.status(201).json(result);
 
   } catch (error) {
     console.error("Submission Controller Error:", error);

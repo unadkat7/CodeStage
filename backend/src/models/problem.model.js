@@ -9,6 +9,10 @@ const testCaseSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  isHidden: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const problemSchema = new mongoose.Schema({

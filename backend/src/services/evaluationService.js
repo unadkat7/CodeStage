@@ -13,6 +13,7 @@ const evaluateSubmission = async (submission) => {
 
   for (let i = 0; i < problem.testCases.length; i++) {
 
+    const testCase = problem.testCases[i];
     const result = await runCode(submission.code, testCase.input);
 
     if (result.error) {
@@ -53,10 +54,22 @@ const evaluateSubmission = async (submission) => {
     const expectedOutput = testCase.output.trim();
 
     if (userOutput !== expectedOutput) {
+
+      if (testCase.isHidden) {
+        return {
+          status: "Wrong Answer",
+          message: "Failed on hidden test case",
+          failedTestCase: i + 1
+        };
+      }
+
+      // For visible test case
       return {
-      status: "Wrong Answer",
-      output: userOutput,
-      failedTestCase: i + 1
+        status: "Wrong Answer",
+        message: "Failed on sample test case",
+        failedTestCase: i + 1,
+        yourOutput: userOutput,
+        expectedOutput: expectedOutput,
       };
     }
   }

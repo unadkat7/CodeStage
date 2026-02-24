@@ -6,6 +6,7 @@ const createSubmission = async (req, res) => {
     const { problemId, code, language } = req.body;
 
     const submission = await Submission.create({
+      userId: req.user._id,
       problemId,
       code,
       language,
@@ -39,10 +40,14 @@ const getSubmissionHistory = async (req, res) => {
   try {
     const { problemId } = req.params;
 
-    const submissions = await Submission.find({ problemId })
-      .sort({ createdAt: -1 });
+    const submissions = await Submission.find({
+        problemId,
+        userId: req.user._id,
+      })
+  .sort({ createdAt: -1 })
+  .select("-code -__v");
 
-    return res.status(200).json(submissions);
+  return res.status(200).json(submissions);
 
   } catch (error) {
     console.error("History Fetch Error:", error);

@@ -4,11 +4,16 @@ const {
   getAllProblems,
   getProblemById,
   createProblem,
+  getProblemStats,
 } = require("../controllers/problem.controller.js");
 
 
 router.get("/", getAllProblems);
+router.get("/:id/stats", getProblemStats);
 router.get("/:id", getProblemById);
+
+
+
 router.post("/", createProblem);
 
 module.exports = router;

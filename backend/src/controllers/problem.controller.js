@@ -1,4 +1,5 @@
 const Problem = require("../models/problem.model.js");
+const Submission = require("../models/submission.model.js");
 
 const createProblem = async (req, res) => {
   try {
@@ -43,8 +44,44 @@ const getProblemById = async (req, res) => {
   }
 };
 
+const getProblemStats = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Total submissions
+    const totalSubmissions = await Submission.countDocuments({
+      problemId: id,
+    });
+
+    // Accepted submissions
+    const acceptedSubmissions = await Submission.countDocuments({
+      problemId: id,
+      status: "Accepted",
+    });
+
+    // Calculate acceptance rate
+    const acceptanceRate =
+      totalSubmissions === 0
+        ? 0
+        : ((acceptedSubmissions / totalSubmissions) * 100).toFixed(2);
+
+    return res.status(200).json({
+      totalSubmissions,
+      acceptedSubmissions,
+      acceptanceRate: `${acceptanceRate}%`,
+    });
+
+  } catch (error) {
+    console.error("Problem Stats Error:", error);
+    return res.status(500).json({
+      message: "Error fetching problem stats",
+      error: error.message,
+    });
+  }
+};
 module.exports = {
   getAllProblems,
   getProblemById,
   createProblem,
+  getProblemStats,
 };

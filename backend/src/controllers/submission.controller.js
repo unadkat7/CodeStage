@@ -15,9 +15,12 @@ const createSubmission = async (req, res) => {
     const result = await evaluateSubmission(submission);
 
     submission.status = result.status;
-    submission.output = result.output;
     submission.executionTime = result.executionTime;
     submission.memoryUsed = result.memoryUsed;
+    submission.failedTestCase = result.failedTestCase || null;
+
+    // Store message OR output safely
+    submission.output = result.message || result.output || null;
     await submission.save();
 
     return res.status(201).json(result);
@@ -31,6 +34,26 @@ const createSubmission = async (req, res) => {
   }
 };
 
+// Get submission history for a problem
+const getSubmissionHistory = async (req, res) => {
+  try {
+    const { problemId } = req.params;
+
+    const submissions = await Submission.find({ problemId })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json(submissions);
+
+  } catch (error) {
+    console.error("History Fetch Error:", error);
+    return res.status(500).json({
+      message: "Error fetching submission history",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createSubmission,
+  getSubmissionHistory,
 };

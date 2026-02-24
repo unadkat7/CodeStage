@@ -20,6 +20,9 @@ const submissionSchema = new mongoose.Schema({
 memoryUsed: {
   type: Number
 },
+failedTestCase: {
+  type: Number
+},
   status: {
     type: String,
    enum: [

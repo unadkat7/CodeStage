@@ -1,5 +1,6 @@
 const Submission = require("../models/submission.model.js");
 const { evaluateSubmission } = require("../services/evaluationService");
+const submissionQueue = require("../queues/submission.queue");
 
 const createSubmission = async (req, res) => {
   try {
@@ -13,18 +14,16 @@ const createSubmission = async (req, res) => {
       status: "Pending",
     });
 
-    const result = await evaluateSubmission(submission);
+    // Push job to queue
+    await submissionQueue.add("evaluate-submission", {
+      submissionId: submission._id,
+    });
 
-    submission.status = result.status;
-    submission.executionTime = result.executionTime;
-    submission.memoryUsed = result.memoryUsed;
-    submission.failedTestCase = result.failedTestCase || null;
-
-    // Store message OR output safely
-    submission.output = result.message || result.output || null;
-    await submission.save();
-
-    return res.status(201).json(result);
+    return res.status(201).json({
+      message: "Submission queued successfully",
+      submissionId: submission._id,
+      status: "Pending",
+    });
 
   } catch (error) {
     console.error("Submission Controller Error:", error);

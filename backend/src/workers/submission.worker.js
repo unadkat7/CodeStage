@@ -5,7 +5,7 @@ require("dotenv").config();
 
 const Submission = require("../models/submission.model");
 const { evaluateSubmission } = require("../services/evaluationService");
-
+const {getIO} = require("../socket.js")
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("Worker MongoDB Connected"))
@@ -40,6 +40,14 @@ const worker = new Worker(
     submission.output = result.message || result.output || null;
 
     await submission.save();
+    const io = getIO();
+
+    io.emit("submission-result", {
+      submissionId: submission._id,
+      status: submission.status,
+      executionTime: submission.executionTime,
+      memoryUsed: submission.memoryUsed
+    });
 
     console.log("Submission evaluated:", submissionId);
   },

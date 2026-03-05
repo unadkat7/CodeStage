@@ -15,9 +15,19 @@ const createSubmission = async (req, res) => {
     });
 
     // Push job to queue
-    await submissionQueue.add("evaluate-submission", {
-      submissionId: submission._id,
-    });
+    await submissionQueue.add("evaluate-submission", 
+      {submissionId: submission._id},
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 3000,
+        },
+        removeOnComplete: true,
+        removeOnFail: false,
+      }
+      
+    );
 
     return res.status(201).json({
       message: "Submission queued successfully",

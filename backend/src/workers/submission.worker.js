@@ -43,7 +43,9 @@ const worker = new Worker(
 
     console.log("Submission evaluated:", submissionId);
   },
-  { connection }
+  { connection,
+    concurrency: 5
+   }
 );
 
 console.log("Submission worker running...");

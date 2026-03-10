@@ -40,20 +40,13 @@ const worker = new Worker(
     submission.output = result.message || result.output || null;
 
     await submission.save();
-    const io = getIO();
-
-    io.emit("submission-result", {
-      submissionId: submission._id,
-      status: submission.status,
-      executionTime: submission.executionTime,
-      memoryUsed: submission.memoryUsed
-    });
 
     console.log("Submission evaluated:", submissionId);
   },
-  { connection,
+  {
+    connection,
     concurrency: 5
-   }
+  }
 );
 
 console.log("Submission worker running...");

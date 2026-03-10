@@ -1,5 +1,4 @@
 const Submission = require("../models/submission.model.js");
-const { evaluateSubmission } = require("../services/evaluationService");
 const submissionQueue = require("../queues/submission.queue");
 
 const createSubmission = async (req, res) => {
@@ -67,7 +66,29 @@ const getSubmissionHistory = async (req, res) => {
   }
 };
 
+const getSubmissionById = async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+
+    const submission = await Submission.findById(submissionId)
+      .select("-code -__v");
+
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    res.status(200).json(submission);
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching submission",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createSubmission,
   getSubmissionHistory,
+  getSubmissionById
 };

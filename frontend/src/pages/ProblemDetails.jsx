@@ -25,6 +25,29 @@ function ProblemDetails() {
     fetchProblem();
   }, [id]);
 
+  const startPolling = (submissionId) => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await API.get(`/submissions/${submissionId}`);
+
+        const data = res.data;
+
+        console.log("Polling result:", data);
+
+        if (data.status !== "Pending") {
+          clearInterval(interval);
+
+          setSubmission(data); // update UI
+
+          console.log("Final Result:", data);
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+        clearInterval(interval);
+      }
+    }, 2000);
+  };
+
   const handleSubmit = async () => {
     try {
       const res = await API.post("/submissions", {
@@ -32,11 +55,17 @@ function ProblemDetails() {
         code,
         language,
       });
-
       setSubmission({
         status: res.data.status,
         _id: res.data.submissionId,
       });
+
+      console.log("Submission created:", res.data);
+
+      const submissionId = res.data.submissionId;
+
+      //Start polling for results
+      startPolling(submissionId);
     } catch (err) {
       console.error("Submission failed");
     }

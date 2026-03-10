@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import API from "../services/api";
 import CodeEditor from "../components/CodeEditor";
 import SubmissionPanel from "../components/SubmissionPanel";
-import socket from "../socket/socket";
 
 function ProblemDetails() {
   const { id } = useParams();
@@ -25,18 +24,6 @@ function ProblemDetails() {
 
     fetchProblem();
   }, [id]);
-
-  useEffect(() => {
-    socket.on("submission-result", (data) => {
-      console.log("Received result:", data);
-
-      setSubmission(data);
-    });
-
-    return () => {
-      socket.off("submission-result");
-    };
-  }, []);
 
   const handleSubmit = async () => {
     try {

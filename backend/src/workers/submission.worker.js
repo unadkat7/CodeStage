@@ -5,7 +5,7 @@ require("dotenv").config();
 
 const Submission = require("../models/submission.model");
 const { evaluateSubmission } = require("../services/evaluationService");
-const {getIO} = require("../socket.js")
+
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("Worker MongoDB Connected"))

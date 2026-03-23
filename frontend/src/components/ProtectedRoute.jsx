@@ -1,12 +1,15 @@
-import { useContext } from "react";
 import { Navigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
+/**
+ * ProtectedRoute — redirects to /login if user is not authenticated.
+ * Wraps any page component that requires a valid JWT.
+ */
 function ProtectedRoute({ children }) {
-  const { token } = useContext(AuthContext);
+  const { token } = useAuth();
 
   if (!token) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;

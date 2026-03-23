@@ -1,17 +1,95 @@
 import axios from "axios";
 
+// ─── Axios Instance ──────────────────────────────────────────────────────────
 const API = axios.create({
   baseURL: "http://localhost:5000/api",
+  timeout: 15000, // 15 second timeout
 });
 
-API.interceptors.request.use((req) => {
-  const token = localStorage.getItem("token");
+// Attach JWT to every request automatically
+API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-  if (token) {
-    req.headers.Authorization = `Bearer ${token}`;
+// Handle 401 globally (token expired / invalid)
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      // Redirect to login if needed (without hard-coding React router here)
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
   }
-
-  return req;
-});
+);
 
 export default API;
+
+// ─── Auth API ─────────────────────────────────────────────────────────────────
+export const authAPI = {
+  /**
+   * POST /auth/register
+   * Body: { name, email, password, role? }
+   * Returns: { message, token, user: { id, name, email, role } }
+   */
+  register: (data) => API.post("/auth/register", data),
+
+  /**
+   * POST /auth/login
+   * Body: { email, password }
+   * Returns: { message, token, user: { id, name, email, role } }
+   */
+  login: (data) => API.post("/auth/login", data),
+};
+
+// ─── Problems API ─────────────────────────────────────────────────────────────
+export const problemsAPI = {
+  /**
+   * GET /problems  [Auth required]
+   * Returns: [{ _id, title, difficulty }]
+   */
+  getAll: () => API.get("/problems"),
+
+  /**
+   * GET /problems/:id
+   * Returns: { _id, title, difficulty, description, sampleInput, sampleOutput, testCases (visible only) }
+   */
+  getById: (id) => API.get(`/problems/${id}`),
+
+  /**
+   * GET /problems/:id/stats
+   * Returns: { totalSubmissions, acceptedSubmissions, acceptanceRate }
+   */
+  getStats: (id) => API.get(`/problems/${id}/stats`),
+};
+
+// ─── Submissions API ──────────────────────────────────────────────────────────
+export const submissionsAPI = {
+  /**
+   * POST /submissions  [Auth required]
+   * Body: { problemId, code, language }
+   * Returns: { message, submissionId, status: "Pending" }
+   */
+  create: (data) => API.post("/submissions", data),
+
+  /**
+   * GET /submissions/:submissionId  [Auth required]
+   * Returns: { _id, problemId, language, status, executionTime, memoryUsed, failedTestCase, output, createdAt }
+   */
+  getById: (submissionId) => API.get(`/submissions/${submissionId}`),
+
+  /**
+   * GET /submissions/history/:problemId  [Auth required]
+   * Returns: [{ _id, language, status, executionTime, memoryUsed, failedTestCase, createdAt }]
+   */
+  getHistory: (problemId) => API.get(`/submissions/history/${problemId}`),
+};

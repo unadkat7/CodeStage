@@ -7,7 +7,12 @@ export const LANGUAGES = [
   { id: "cpp", label: "C++ 17", monacoLang: "cpp", judge0Id: 54 },
   { id: "java", label: "Java 17", monacoLang: "java", judge0Id: 62 },
   { id: "python", label: "Python 3", monacoLang: "python", judge0Id: 71 },
-  { id: "javascript", label: "JavaScript", monacoLang: "javascript", judge0Id: 63 },
+  {
+    id: "javascript",
+    label: "JavaScript",
+    monacoLang: "javascript",
+    judge0Id: 63,
+  },
   { id: "c", label: "C", monacoLang: "c", judge0Id: 50 },
 ];
 

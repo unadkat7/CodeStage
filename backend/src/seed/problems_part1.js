@@ -1,0 +1,298 @@
+const problems1 = [
+  // ─── ARRAYS ────────────────────────────────────────────────────────────────
+  {
+    title: "Two Sum",
+    difficulty: "easy",
+    description: `Given an array of integers \`nums\` and an integer \`target\`, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nReturn the answer in any order.\n\n**Constraints:**\n- 2 <= nums.length <= 10^4\n- -10^9 <= nums[i] <= 10^9\n- -10^9 <= target <= 10^9`,
+    sampleInput: "nums = [2,7,11,15], target = 9",
+    sampleOutput: "[0,1]",
+    testCases: [
+      { input: "2 7 11 15\n9", output: "0 1", isHidden: false },
+      { input: "3 2 4\n6", output: "1 2", isHidden: false },
+      { input: "3 3\n6", output: "0 1", isHidden: true },
+    ],
+  },
+  {
+    title: "Best Time to Buy and Sell Stock",
+    difficulty: "easy",
+    description: `You are given an array \`prices\` where \`prices[i]\` is the price of a given stock on the i-th day.\n\nYou want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock.\n\nReturn the maximum profit you can achieve from this transaction. If you cannot achieve any profit, return 0.\n\n**Constraints:**\n- 1 <= prices.length <= 10^5\n- 0 <= prices[i] <= 10^4`,
+    sampleInput: "prices = [7,1,5,3,6,4]",
+    sampleOutput: "5",
+    testCases: [
+      { input: "7 1 5 3 6 4", output: "5", isHidden: false },
+      { input: "7 6 4 3 1", output: "0", isHidden: false },
+      { input: "1 2", output: "1", isHidden: true },
+    ],
+  },
+  {
+    title: "Contains Duplicate",
+    difficulty: "easy",
+    description: `Given an integer array \`nums\`, return \`true\` if any value appears at least twice in the array, and return \`false\` if every element is distinct.\n\n**Constraints:**\n- 1 <= nums.length <= 10^5\n- -10^9 <= nums[i] <= 10^9`,
+    sampleInput: "nums = [1,2,3,1]",
+    sampleOutput: "true",
+    testCases: [
+      { input: "1 2 3 1", output: "true", isHidden: false },
+      { input: "1 2 3 4", output: "false", isHidden: false },
+      { input: "1 1 1 3 3 4 3 2 4 2", output: "true", isHidden: true },
+    ],
+  },
+  {
+    title: "Maximum Subarray",
+    difficulty: "medium",
+    description: `Given an integer array \`nums\`, find the subarray with the largest sum, and return its sum.\n\n**Constraints:**\n- 1 <= nums.length <= 10^5\n- -10^4 <= nums[i] <= 10^4`,
+    sampleInput: "nums = [-2,1,-3,4,-1,2,1,-5,4]",
+    sampleOutput: "6",
+    testCases: [
+      { input: "-2 1 -3 4 -1 2 1 -5 4", output: "6", isHidden: false },
+      { input: "1", output: "1", isHidden: false },
+      { input: "5 4 -1 7 8", output: "23", isHidden: true },
+    ],
+  },
+  {
+    title: "Product of Array Except Self",
+    difficulty: "medium",
+    description: `Given an integer array \`nums\`, return an array \`answer\` such that \`answer[i]\` is equal to the product of all the elements of \`nums\` except \`nums[i]\`.\n\nThe product of any prefix or suffix of \`nums\` is guaranteed to fit in a 32-bit integer.\n\nYou must write an algorithm that runs in O(n) time and without using the division operation.\n\n**Constraints:**\n- 2 <= nums.length <= 10^5\n- -30 <= nums[i] <= 30`,
+    sampleInput: "nums = [1,2,3,4]",
+    sampleOutput: "[24,12,8,6]",
+    testCases: [
+      { input: "1 2 3 4", output: "24 12 8 6", isHidden: false },
+      { input: "-1 1 0 -3 3", output: "0 0 9 0 0", isHidden: false },
+      { input: "2 3 4 5", output: "60 40 30 24", isHidden: true },
+    ],
+  },
+  {
+    title: "3Sum",
+    difficulty: "medium",
+    description: `Given an integer array nums, return all the triplets \`[nums[i], nums[j], nums[k]]\` such that \`i != j\`, \`i != k\`, and \`j != k\`, and \`nums[i] + nums[j] + nums[k] == 0\`.\n\nNotice that the solution set must not contain duplicate triplets.\n\n**Constraints:**\n- 3 <= nums.length <= 3000\n- -10^5 <= nums[i] <= 10^5`,
+    sampleInput: "nums = [-1,0,1,2,-1,-4]",
+    sampleOutput: "[[-1,-1,2],[-1,0,1]]",
+    testCases: [
+      { input: "-1 0 1 2 -1 -4", output: "-1 -1 2\n-1 0 1", isHidden: false },
+      { input: "0 1 1", output: "", isHidden: false },
+      { input: "0 0 0", output: "0 0 0", isHidden: true },
+    ],
+  },
+  // ─── STRINGS ───────────────────────────────────────────────────────────────
+  {
+    title: "Valid Anagram",
+    difficulty: "easy",
+    description: `Given two strings \`s\` and \`t\`, return \`true\` if \`t\` is an anagram of \`s\`, and \`false\` otherwise.\n\nAn Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, using all the original letters exactly once.\n\n**Constraints:**\n- 1 <= s.length, t.length <= 5 * 10^4\n- s and t consist of lowercase English letters.`,
+    sampleInput: 's = "anagram", t = "nagaram"',
+    sampleOutput: "true",
+    testCases: [
+      { input: "anagram nagaram", output: "true", isHidden: false },
+      { input: "rat car", output: "false", isHidden: false },
+      { input: "ab ba", output: "true", isHidden: true },
+    ],
+  },
+  {
+    title: "Valid Palindrome",
+    difficulty: "easy",
+    description: `A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward.\n\nGiven a string \`s\`, return \`true\` if it is a palindrome, or \`false\` otherwise.\n\n**Constraints:**\n- 1 <= s.length <= 2 * 10^5\n- s consists only of printable ASCII characters.`,
+    sampleInput: 's = "A man, a plan, a canal: Panama"',
+    sampleOutput: "true",
+    testCases: [
+      { input: "A man, a plan, a canal: Panama", output: "true", isHidden: false },
+      { input: "race a car", output: "false", isHidden: false },
+      { input: " ", output: "true", isHidden: true },
+    ],
+  },
+  {
+    title: "Longest Substring Without Repeating Characters",
+    difficulty: "medium",
+    description: `Given a string \`s\`, find the length of the longest substring without repeating characters.\n\n**Constraints:**\n- 0 <= s.length <= 5 * 10^4\n- s consists of English letters, digits, symbols and spaces.`,
+    sampleInput: 's = "abcabcbb"',
+    sampleOutput: "3",
+    testCases: [
+      { input: "abcabcbb", output: "3", isHidden: false },
+      { input: "bbbbb", output: "1", isHidden: false },
+      { input: "pwwkew", output: "3", isHidden: true },
+    ],
+  },
+  {
+    title: "Longest Palindromic Substring",
+    difficulty: "medium",
+    description: `Given a string \`s\`, return the longest palindromic substring in \`s\`.\n\n**Constraints:**\n- 1 <= s.length <= 1000\n- s consists of only digits and English letters.`,
+    sampleInput: 's = "babad"',
+    sampleOutput: '"bab"',
+    testCases: [
+      { input: "babad", output: "bab", isHidden: false },
+      { input: "cbbd", output: "bb", isHidden: false },
+      { input: "racecar", output: "racecar", isHidden: true },
+    ],
+  },
+  {
+    title: "Group Anagrams",
+    difficulty: "medium",
+    description: `Given an array of strings \`strs\`, group the anagrams together. You can return the answer in any order.\n\n**Constraints:**\n- 1 <= strs.length <= 10^4\n- 0 <= strs[i].length <= 100\n- strs[i] consists of lowercase English letters.`,
+    sampleInput: 'strs = ["eat","tea","tan","ate","nat","bat"]',
+    sampleOutput: '[["bat"],["nat","tan"],["ate","eat","tea"]]',
+    testCases: [
+      { input: "eat tea tan ate nat bat", output: "ate eat tea\nbat\nnat tan", isHidden: false },
+      { input: "", output: "", isHidden: false },
+      { input: "a", output: "a", isHidden: true },
+    ],
+  },
+  // ─── LINKED LISTS ──────────────────────────────────────────────────────────
+  {
+    title: "Reverse Linked List",
+    difficulty: "easy",
+    description: `Given the head of a singly linked list, reverse the list, and return the reversed list.\n\n**Constraints:**\n- The number of nodes in the list is the range [0, 5000].\n- -5000 <= Node.val <= 5000`,
+    sampleInput: "head = [1,2,3,4,5]",
+    sampleOutput: "[5,4,3,2,1]",
+    testCases: [
+      { input: "1 2 3 4 5", output: "5 4 3 2 1", isHidden: false },
+      { input: "1 2", output: "2 1", isHidden: false },
+      { input: "", output: "", isHidden: true },
+    ],
+  },
+  {
+    title: "Merge Two Sorted Lists",
+    difficulty: "easy",
+    description: `You are given the heads of two sorted linked lists \`list1\` and \`list2\`.\n\nMerge the two lists into one sorted list. The list should be made by splicing together the nodes of the first two lists.\n\nReturn the head of the merged linked list.\n\n**Constraints:**\n- The number of nodes in both lists is in the range [0, 50].\n- -100 <= Node.val <= 100`,
+    sampleInput: "list1 = [1,2,4], list2 = [1,3,4]",
+    sampleOutput: "[1,1,2,3,4,4]",
+    testCases: [
+      { input: "1 2 4\n1 3 4", output: "1 1 2 3 4 4", isHidden: false },
+      { input: "\n", output: "", isHidden: false },
+      { input: "0\n", output: "0", isHidden: true },
+    ],
+  },
+  {
+    title: "Linked List Cycle",
+    difficulty: "easy",
+    description: `Given \`head\`, the head of a linked list, determine if the linked list has a cycle in it.\n\nReturn \`true\` if there is a cycle in the linked list. Otherwise, return \`false\`.\n\n**Constraints:**\n- The number of the nodes in the list is in the range [0, 10^4].\n- -10^5 <= Node.val <= 10^5`,
+    sampleInput: "head = [3,2,0,-4], pos = 1",
+    sampleOutput: "true",
+    testCases: [
+      { input: "3 2 0 -4\n1", output: "true", isHidden: false },
+      { input: "1 2\n0", output: "true", isHidden: false },
+      { input: "1\n-1", output: "false", isHidden: true },
+    ],
+  },
+  // ─── TREES ─────────────────────────────────────────────────────────────────
+  {
+    title: "Maximum Depth of Binary Tree",
+    difficulty: "easy",
+    description: `Given the \`root\` of a binary tree, return its maximum depth.\n\nA binary tree's maximum depth is the number of nodes along the longest path from the root node down to the farthest leaf node.\n\n**Constraints:**\n- The number of nodes in the tree is in the range [0, 10^4].\n- -100 <= Node.val <= 100`,
+    sampleInput: "root = [3,9,20,null,null,15,7]",
+    sampleOutput: "3",
+    testCases: [
+      { input: "3 9 20 null null 15 7", output: "3", isHidden: false },
+      { input: "1 null 2", output: "2", isHidden: false },
+      { input: "1", output: "1", isHidden: true },
+    ],
+  },
+  {
+    title: "Invert Binary Tree",
+    difficulty: "easy",
+    description: `Given the \`root\` of a binary tree, invert the tree, and return its root.\n\n**Constraints:**\n- The number of nodes in the tree is in the range [0, 100].\n- -100 <= Node.val <= 100`,
+    sampleInput: "root = [4,2,7,1,3,6,9]",
+    sampleOutput: "[4,7,2,9,6,3,1]",
+    testCases: [
+      { input: "4 2 7 1 3 6 9", output: "4 7 2 9 6 3 1", isHidden: false },
+      { input: "2 1 3", output: "2 3 1", isHidden: false },
+      { input: "", output: "", isHidden: true },
+    ],
+  },
+  {
+    title: "Validate Binary Search Tree",
+    difficulty: "medium",
+    description: `Given the \`root\` of a binary tree, determine if it is a valid binary search tree (BST).\n\nA valid BST is defined as follows:\n- The left subtree of a node contains only nodes with keys less than the node's key.\n- The right subtree of a node contains only nodes with keys greater than the node's key.\n- Both the left and right subtrees must also be binary search trees.\n\n**Constraints:**\n- The number of nodes in the tree is in the range [1, 10^4].\n- -2^31 <= Node.val <= 2^31 - 1`,
+    sampleInput: "root = [2,1,3]",
+    sampleOutput: "true",
+    testCases: [
+      { input: "2 1 3", output: "true", isHidden: false },
+      { input: "5 1 4 null null 3 6", output: "false", isHidden: false },
+      { input: "2 2 2", output: "false", isHidden: true },
+    ],
+  },
+  {
+    title: "Binary Tree Level Order Traversal",
+    difficulty: "medium",
+    description: `Given the \`root\` of a binary tree, return the level order traversal of its nodes' values (i.e., from left to right, level by level).\n\n**Constraints:**\n- The number of nodes in the tree is in the range [0, 2000].\n- -1000 <= Node.val <= 1000`,
+    sampleInput: "root = [3,9,20,null,null,15,7]",
+    sampleOutput: "[[3],[9,20],[15,7]]",
+    testCases: [
+      { input: "3 9 20 null null 15 7", output: "3\n9 20\n15 7", isHidden: false },
+      { input: "1", output: "1", isHidden: false },
+      { input: "", output: "", isHidden: true },
+    ],
+  },
+  // ─── DYNAMIC PROGRAMMING ───────────────────────────────────────────────────
+  {
+    title: "Climbing Stairs",
+    difficulty: "easy",
+    description: `You are climbing a staircase. It takes \`n\` steps to reach the top.\n\nEach time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?\n\n**Constraints:**\n- 1 <= n <= 45`,
+    sampleInput: "n = 3",
+    sampleOutput: "3",
+    testCases: [
+      { input: "3", output: "3", isHidden: false },
+      { input: "2", output: "2", isHidden: false },
+      { input: "10", output: "89", isHidden: true },
+    ],
+  },
+  {
+    title: "House Robber",
+    difficulty: "medium",
+    description: `You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed, the only constraint stopping you from robbing each of them is that adjacent houses have security systems connected and it will automatically contact the police if two adjacent houses were broken into on the same night.\n\nGiven an integer array \`nums\` representing the amount of money of each house, return the maximum amount of money you can rob tonight without alerting the police.\n\n**Constraints:**\n- 1 <= nums.length <= 100\n- 0 <= nums[i] <= 400`,
+    sampleInput: "nums = [1,2,3,1]",
+    sampleOutput: "4",
+    testCases: [
+      { input: "1 2 3 1", output: "4", isHidden: false },
+      { input: "2 7 9 3 1", output: "12", isHidden: false },
+      { input: "2 1 1 2", output: "4", isHidden: true },
+    ],
+  },
+  {
+    title: "Coin Change",
+    difficulty: "medium",
+    description: `You are given an integer array \`coins\` representing coins of different denominations and an integer \`amount\` representing a total amount of money.\n\nReturn the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return \`-1\`.\n\nYou may assume that you have an infinite number of each kind of coin.\n\n**Constraints:**\n- 1 <= coins.length <= 12\n- 1 <= coins[i] <= 2^31 - 1\n- 0 <= amount <= 10^4`,
+    sampleInput: "coins = [1,5,6,9], amount = 11",
+    sampleOutput: "2",
+    testCases: [
+      { input: "1 5 6 9\n11", output: "2", isHidden: false },
+      { input: "2\n3", output: "-1", isHidden: false },
+      { input: "1\n0", output: "0", isHidden: true },
+    ],
+  },
+  {
+    title: "Longest Common Subsequence",
+    difficulty: "medium",
+    description: `Given two strings \`text1\` and \`text2\`, return the length of their longest common subsequence. If there is no common subsequence, return \`0\`.\n\nA subsequence of a string is a new string generated from the original string with some characters (can be none) deleted without changing the relative order of the remaining characters.\n\n**Constraints:**\n- 1 <= text1.length, text2.length <= 1000\n- text1 and text2 consist of only lowercase English letters.`,
+    sampleInput: 'text1 = "abcde", text2 = "ace"',
+    sampleOutput: "3",
+    testCases: [
+      { input: "abcde\nace", output: "3", isHidden: false },
+      { input: "abc\nabc", output: "3", isHidden: false },
+      { input: "abc\ndef", output: "0", isHidden: true },
+    ],
+  },
+  // ─── GRAPHS ────────────────────────────────────────────────────────────────
+  {
+    title: "Number of Islands",
+    difficulty: "medium",
+    description: `Given an m x n 2D binary grid \`grid\` which represents a map of '1's (land) and '0's (water), return the number of islands.\n\nAn island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.\n\n**Constraints:**\n- m == grid.length\n- n == grid[i].length\n- 1 <= m, n <= 300\n- grid[i][j] is '0' or '1'.`,
+    sampleInput: 'grid = [["1","1","1","1","0"],["1","1","0","1","0"],["1","1","0","0","0"],["0","0","0","0","0"]]',
+    sampleOutput: "1",
+    testCases: [
+      { input: "4 5\n1 1 1 1 0\n1 1 0 1 0\n1 1 0 0 0\n0 0 0 0 0", output: "1", isHidden: false },
+      { input: "4 5\n1 1 0 0 0\n1 1 0 0 0\n0 0 1 0 0\n0 0 0 1 1", output: "3", isHidden: false },
+      { input: "1 1\n1", output: "1", isHidden: true },
+    ],
+  },
+  {
+    title: "Clone Graph",
+    difficulty: "medium",
+    description: `Given a reference of a node in a connected undirected graph, return a deep copy (clone) of the graph.\n\nEach node in the graph contains a value (int) and a list (List[Node]) of its neighbors.\n\n**Constraints:**\n- The number of nodes in the graph is in the range [0, 100].\n- 1 <= Node.val <= 100\n- Node.val is unique for each node.\n- There are no repeated edges and no self-loops in the graph.`,
+    sampleInput: "adjList = [[2,4],[1,3],[2,4],[1,3]]",
+    sampleOutput: "[[2,4],[1,3],[2,4],[1,3]]",
+    testCases: [
+      { input: "4\n2 4\n1 3\n2 4\n1 3", output: "2 4\n1 3\n2 4\n1 3", isHidden: false },
+      { input: "1\n", output: "", isHidden: false },
+      { input: "0", output: "", isHidden: true },
+    ],
+  },
+];
+
+module.exports = problems1;

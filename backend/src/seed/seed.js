@@ -4,13 +4,14 @@ const Problem = require("../models/problem.model");
 
 const problems1 = require("./problems_part1");
 const problems2 = require("./problems_part2");
+const problems3 = require("./problems_part3");
 const connectDB = require("../config/db");
 
 const seedDatabase = async () => {
   try {
     connectDB();
 
-    const allProblems = [...problems1, ...problems2];
+    const allProblems = [...problems1, ...problems2, ...problems3];
     console.log(`Total problems to insert: ${allProblems.length}`);
 
     // Clear existing problems

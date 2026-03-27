@@ -8,8 +8,8 @@ const { evaluateSubmission } = require("../services/evaluationService");
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("Worker MongoDB Connected"))
-.catch(err => console.error(err));
+  .then(() => console.log("Worker MongoDB Connected"))
+  .catch(err => console.error(err));
 
 const connection = new IORedis({
   host: "127.0.0.1",
@@ -31,7 +31,21 @@ const worker = new Worker(
       return;
     }
 
-    const result = await evaluateSubmission(submission);
+    let result;
+
+    try {
+      result = await evaluateSubmission(submission);
+    } catch (err) {
+      console.error("Worker Error:", err.message);
+
+      result = {
+        status: "Error",
+        message: "Internal worker error",
+        executionTime: null,
+        memoryUsed: null,
+        failedTestCase: null,
+      };
+    }
 
     submission.status = result.status;
     submission.executionTime = result.executionTime;

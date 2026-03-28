@@ -39,6 +39,25 @@ function Home() {
     return [...easy, ...medium, ...hard];
   })();
 
+  // Calculate Stats
+  const stats = (() => {
+    const total = problems.length;
+    const solved = problems.filter(p => p.isSolved).length;
+    const easySolved = problems.filter(p => p.difficulty?.toLowerCase() === "easy" && p.isSolved).length;
+    const mediumSolved = problems.filter(p => p.difficulty?.toLowerCase() === "medium" && p.isSolved).length;
+    const hardSolved = problems.filter(p => p.difficulty?.toLowerCase() === "hard" && p.isSolved).length;
+    
+    return {
+      total,
+      solved,
+      remaining: total - solved,
+      rate: total > 0 ? Math.round((solved / total) * 100) : 0,
+      easy: easySolved,
+      medium: mediumSolved,
+      hard: hardSolved
+    };
+  })();
+
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-bg-primary)" }}>
       <Navbar />
@@ -83,23 +102,61 @@ function Home() {
           marginBottom: "80px" 
         }}>
           <InfoCard 
-            title="Global Progress" 
-            value="1,240+" 
-            desc="Solutions submitted today" 
-            icon={<svg width="24" height="24" fill="none" stroke="var(--color-blue)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
-          />
-          <InfoCard 
-            title="Community" 
-            value="45k+" 
-            desc="Developers actively coding" 
-            icon={<svg width="24" height="24" fill="none" stroke="var(--color-purple)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
-          />
-          <InfoCard 
-            title="Success Rate" 
-            value="68%" 
-            desc="Average problem pass rate" 
+            title="Total Solved" 
+            value={stats.solved} 
+            desc={`${stats.remaining} problems left to solve`} 
             icon={<svg width="24" height="24" fill="none" stroke="var(--color-green)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
           />
+          
+          <div className="card-hover" style={{ 
+            background: "var(--color-bg-secondary)", 
+            border: "1px solid var(--color-border)", 
+            borderRadius: "12px", 
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Difficulty Split</span>
+              <svg width="20" height="20" fill="none" stroke="var(--color-purple)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
+              <DifficultyStat label="Easy" solved={stats.easy} color="var(--color-green)" />
+              <DifficultyStat label="Med" solved={stats.medium} color="var(--color-yellow)" />
+              <DifficultyStat label="Hard" solved={stats.hard} color="var(--color-red)" />
+            </div>
+          </div>
+
+          <div className="card-hover" style={{ 
+            background: "var(--color-bg-secondary)", 
+            border: "1px solid var(--color-border)", 
+            borderRadius: "12px", 
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Completion Rate</span>
+              <span style={{ fontSize: "20px", fontWeight: "800", color: "var(--color-blue)" }}>{stats.rate}%</span>
+            </div>
+            <div style={{ position: "relative", height: "8px", background: "rgba(255,255,255,0.05)", borderRadius: "4px", overflow: "hidden" }}>
+              <div style={{ 
+                position: "absolute", 
+                left: 0, 
+                top: 0, 
+                height: "100%", 
+                width: `${stats.rate}%`, 
+                background: "var(--color-blue)", 
+                borderRadius: "4px",
+                transition: "width 1s ease-out" 
+              }} />
+            </div>
+            <div style={{ marginTop: "12px", fontSize: "12px", color: "var(--color-text-muted)" }}>
+              {stats.solved} / {stats.total} challenges completed
+            </div>
+          </div>
         </section>
 
         {/* Curated Problems */}
@@ -173,6 +230,15 @@ function InfoCard({ title, value, desc, icon }) {
         <div style={{ fontSize: "28px", fontWeight: "800", color: "var(--color-text-primary)" }}>{value}</div>
         <div style={{ fontSize: "13px", color: "var(--color-text-muted)" }}>{desc}</div>
       </div>
+    </div>
+  );
+}
+
+function DifficultyStat({ label, solved, color }) {
+  return (
+    <div style={{ flex: 1, textAlign: "center", padding: "10px", background: "rgba(255,255,255,0.02)", borderRadius: "8px" }}>
+       <div style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: "4px" }}>{label}</div>
+       <div style={{ fontSize: "18px", fontWeight: "700", color: color }}>{solved}</div>
     </div>
   );
 }

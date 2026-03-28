@@ -1,5 +1,6 @@
 const Submission = require("../models/submission.model.js");
 const submissionQueue = require("../queues/submission.queue");
+const { evaluateRunCode } = require("../services/evaluationService");
 
 const createSubmission = async (req, res) => {
   try {
@@ -87,8 +88,20 @@ const getSubmissionById = async (req, res) => {
   }
 };
 
+const runCode = async (req, res) => {
+  try {
+    const { problemId, code, language } = req.body;
+    const result = await evaluateRunCode(problemId, code, language);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Run Code Controller Error:", error);
+    return res.status(500).json({ message: "Error running code", error: error.message });
+  }
+};
+
 module.exports = {
   createSubmission,
   getSubmissionHistory,
-  getSubmissionById
+  getSubmissionById,
+  runCode
 };

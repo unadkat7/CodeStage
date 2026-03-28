@@ -33,6 +33,7 @@ function ProblemDetails() {
   const [submission, setSubmission] = useState(null);
   const [isPolling, setIsPolling] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
   const [loading, setLoading] = useState(true);
@@ -142,6 +143,36 @@ function ProblemDetails() {
       );
     } finally {
       setSubmitting(false);
+    }
+  };
+ 
+  // ── Run code (Visible Test Cases only) ──────────────────────────────────────
+  const handleRun = async () => {
+    if (!code.trim()) {
+      setSubmitError("Please write some code before running.");
+      return;
+    }
+ 
+    setSubmitError("");
+    setIsRunning(true);
+    setSubmission(null);
+    setActivePanel("result");
+ 
+    try {
+      const res = await submissionsAPI.runCode({
+        problemId: id,
+        code,
+        language,
+      });
+      
+      // Unlike submit, run doesn't poll. We get the result immediately.
+      setSubmission(res.data);
+    } catch (err) {
+      setSubmitError(
+        err.response?.data?.message || "Run failed. Please try again."
+      );
+    } finally {
+      setIsRunning(false);
     }
   };
   // ── Resizing Logic ─────────────────────────────────────────────────────────
@@ -417,11 +448,35 @@ function ProblemDetails() {
               Reset
             </button>
 
+            {/* Run button */}
+            <button
+              id="run-code-btn"
+              onClick={handleRun}
+              disabled={submitting || isPolling || isRunning}
+              className="btn-secondary"
+              style={{ padding: "7px 20px", fontSize: "13px" }}
+            >
+              {isRunning ? (
+                <>
+                  <div className="spinner" style={{ width: "14px", height: "14px" }} />
+                  Running…
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Run
+                </>
+              )}
+            </button>
+
             {/* Submit button */}
             <button
               id="submit-code-btn"
               onClick={handleSubmit}
-              disabled={submitting || isPolling}
+              disabled={submitting || isPolling || isRunning}
               className="btn-primary"
               style={{ padding: "7px 20px", fontSize: "13px" }}
             >
@@ -509,7 +564,7 @@ function ProblemDetails() {
             >
               Result
             </div>
-            <SubmissionPanel submission={submission} isPolling={isPolling} />
+            <SubmissionPanel submission={submission} isPolling={isPolling} isRunning={isRunning} />
           </div>
         </div>
       </div>

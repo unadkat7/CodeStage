@@ -42,7 +42,7 @@ const evaluateSubmission = async (submission) => {
     for (let i = 0; i < problem.testCases.length; i++) {
       const testCase = problem.testCases[i];
 
-      const result = await runCode(submission.code, testCase.input);
+      const result = await runCode(submission.code, testCase.input, submission.language);
 
       if (result.error) {
         return { status: "Execution Error", output: result.error };
@@ -122,13 +122,24 @@ const evaluateSubmission = async (submission) => {
   }
 };
 
-const runCode = async (sourceCode, input) => {
+const runCode = async (sourceCode, input, language) => {
+  // Map our frontend language IDs to Judge0 IDs
+  const languageMap = {
+    cpp: 54,
+    java: 62,
+    python: 71,
+    javascript: 63,
+    c: 50
+  };
+
+  const languageId = languageMap[language] || 54;
+
   try {
     const data = await callJudge0WithRetry({
       method: "POST",
       url: "https://ce.judge0.com/submissions?base64_encoded=true&wait=true",
       data: {
-        language_id: 54, // C++
+        language_id: languageId,
         source_code: Buffer.from(sourceCode).toString("base64"),
         stdin: Buffer.from(input).toString("base64"),
       },
@@ -144,6 +155,65 @@ const runCode = async (sourceCode, input) => {
   }
 };
 
+const evaluateRunCode = async (problemId, code, language) => {
+  try {
+    const problem = await Problem.findById(problemId);
+    if (!problem) return { status: "Error", message: "Problem not found" };
+
+    const visibleTestCases = problem.testCases.filter(tc => !tc.isHidden);
+    if (visibleTestCases.length === 0) {
+      return { status: "Error", message: "No visible test cases for this problem" };
+    }
+
+    let executionTime = 0;
+    let memoryUsed = 0;
+
+    for (let i = 0; i < visibleTestCases.length; i++) {
+      const testCase = visibleTestCases[i];
+      const result = await runCode(code, testCase.input, language);
+
+      if (result.error) return { status: "Execution Error", output: result.error };
+
+      if (!result.status || result.status.id !== 3) {
+        let normalizedStatus = result.status?.description || "Error";
+        return {
+          status: normalizedStatus,
+          output: result.stderr ? Buffer.from(result.stderr, "base64").toString() : 
+                  result.compile_output ? Buffer.from(result.compile_output, "base64").toString() : "",
+          failedTestCase: i + 1
+        };
+      }
+
+      executionTime = Math.max(executionTime, parseFloat(result.time || 0));
+      memoryUsed = Math.max(memoryUsed, parseInt(result.memory || 0));
+
+      const userOutput = result.stdout ? normalize(Buffer.from(result.stdout, "base64").toString()) : "";
+      const expectedOutput = normalize(testCase.output);
+
+      if (userOutput !== expectedOutput) {
+        return {
+          status: "Wrong Answer",
+          message: "Failed on sample test case",
+          failedTestCase: i + 1,
+          output: userOutput,
+          expectedOutput: expectedOutput,
+        };
+      }
+    }
+
+    return {
+      status: "Accepted",
+      output: "All visible test cases passed",
+      executionTime,
+      memoryUsed,
+    };
+  } catch (err) {
+    console.error("Run Code Error:", err);
+    return { status: "Error", message: "Failed to run code" };
+  }
+};
+
 module.exports = {
   evaluateSubmission,
+  evaluateRunCode,
 };

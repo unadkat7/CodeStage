@@ -3,9 +3,10 @@
  *
  * Props:
  *   submission  — latest submission object (or null when not yet submitted)
- *   isPolling   — boolean, true while waiting for result
+ *   isPolling   — boolean, true while waiting for result (submit)
+ *   isRunning   — boolean, true while waiting for result (run)
  */
-function SubmissionPanel({ submission, isPolling }) {
+function SubmissionPanel({ submission, isPolling, isRunning }) {
   // ── Not yet submitted ──────────────────────────────────────────────────────
   if (!submission) {
     return (
@@ -42,8 +43,8 @@ function SubmissionPanel({ submission, isPolling }) {
     );
   }
 
-  // ── Polling / Pending ──────────────────────────────────────────────────────
-  if (isPolling || submission.status === "Pending") {
+  // ── Polling / Pending / Running ───────────────────────────────────────────
+  if (isPolling || isRunning || submission.status === "Pending") {
     return (
       <div
         className="fade-in"
@@ -71,7 +72,7 @@ function SubmissionPanel({ submission, isPolling }) {
                 color: "var(--color-yellow)",
               }}
             >
-              Evaluating…
+              {isRunning ? "Running Code…" : "Evaluating…"}
             </div>
             <div
               style={{ fontSize: "12px", color: "var(--color-text-muted)", marginTop: "2px" }}

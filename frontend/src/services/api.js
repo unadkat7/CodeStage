@@ -92,4 +92,11 @@ export const submissionsAPI = {
    * Returns: [{ _id, language, status, executionTime, memoryUsed, failedTestCase, createdAt }]
    */
   getHistory: (problemId) => API.get(`/submissions/history/${problemId}`),
+
+  /**
+   * POST /submissions/run  [Auth required]
+   * Body: { problemId, code, language }
+   * Returns: { status, output, executionTime, memoryUsed, failedTestCase? }
+   */
+  runCode: (data) => API.post("/submissions/run", data),
 };

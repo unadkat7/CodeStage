@@ -35,13 +35,20 @@ function ProblemDetails() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  // UI
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("description"); // description | testcases | history
   const [activePanel, setActivePanel] = useState("result"); // result (right bottom tab)
 
-  // Ref to clear the polling interval if the component unmounts
+  // Resizing state
+  const [leftWidth, setLeftWidth] = useState(45); // percentage
+  const [topHeight, setTopHeight] = useState(65); // percentage
+  const [isResizingH, setIsResizingH] = useState(false);
+  const [isResizingV, setIsResizingV] = useState(false);
+
+  // Refs for polling and containers
   const pollRef = useRef(null);
+  const containerRef = useRef(null);
+  const rightPanelRef = useRef(null);
 
   // ── Fetch problem data ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -137,6 +144,40 @@ function ProblemDetails() {
       setSubmitting(false);
     }
   };
+  // ── Resizing Logic ─────────────────────────────────────────────────────────
+  const startResizingH = useCallback(() => setIsResizingH(true), []);
+  const startResizingV = useCallback(() => setIsResizingV(true), []);
+  const stopResizing = useCallback(() => {
+    setIsResizingH(false);
+    setIsResizingV(false);
+  }, []);
+
+  const resize = useCallback((e) => {
+    if (isResizingH && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+      if (newWidth > 20 && newWidth < 80) setLeftWidth(newWidth);
+    }
+    if (isResizingV && rightPanelRef.current) {
+      const rightRect = rightPanelRef.current.getBoundingClientRect();
+      const newHeight = ((e.clientY - rightRect.top) / rightRect.height) * 100;
+      if (newHeight > 20 && newHeight < 85) setTopHeight(newHeight);
+    }
+  }, [isResizingH, isResizingV]);
+
+  useEffect(() => {
+    if (isResizingH || isResizingV) {
+      window.addEventListener("mousemove", resize);
+      window.addEventListener("mouseup", stopResizing);
+    } else {
+      window.removeEventListener("mousemove", resize);
+      window.removeEventListener("mouseup", stopResizing);
+    }
+    return () => {
+      window.removeEventListener("mousemove", resize);
+      window.removeEventListener("mouseup", stopResizing);
+    };
+  }, [isResizingH, isResizingV, resize, stopResizing]);
 
   // ── Loading skeleton ────────────────────────────────────────────────────────
   if (loading) {
@@ -186,22 +227,25 @@ function ProblemDetails() {
       <Navbar />
 
       <div
+        ref={containerRef}
         style={{
           flex: 1,
           display: "flex",
           overflow: "hidden",
           height: "calc(100vh - 61px)",
+          position: "relative",
+          userSelect: (isResizingH || isResizingV) ? "none" : "auto",
         }}
       >
         {/* ── LEFT PANEL: Problem ───────────────────────────────────────────── */}
         <div
           style={{
-            width: "45%",
-            minWidth: "340px",
-            borderRight: "1px solid var(--color-border)",
+            width: `${leftWidth}%`,
+            minWidth: "300px",
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
+            background: "var(--color-bg-primary)",
           }}
         >
           {/* Problem header */}
@@ -285,14 +329,31 @@ function ProblemDetails() {
           </div>
         </div>
 
-        {/* ── RIGHT PANEL: Editor ───────────────────────────────────────────── */}
+        {/* Horizontal Resizer (Vertical bar) */}
         <div
+          onMouseDown={startResizingH}
+          style={{
+            width: "4px",
+            cursor: "col-resize",
+            background: isResizingH ? "var(--color-blue)" : "transparent",
+            transition: "background 0.2s",
+            zIndex: 10,
+            borderLeft: "1px solid var(--color-border)",
+          }}
+          onMouseEnter={(e) => { if (!isResizingH) e.target.style.background = "rgba(88, 166, 255, 0.3)"; }}
+          onMouseLeave={(e) => { if (!isResizingH) e.target.style.background = "transparent"; }}
+        />
+
+        {/* ── RIGHT PANEL: Editor & Results ─────────────────────────────────── */}
+        <div
+          ref={rightPanelRef}
           style={{
             flex: 1,
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
             minWidth: 0,
+            background: "var(--color-bg-primary)",
           }}
         >
           {/* Editor toolbar */}
@@ -381,9 +442,25 @@ function ProblemDetails() {
           </div>
 
           {/* Monaco Editor */}
-          <div style={{ flex: "0 0 auto" }}>
-            <CodeEditor code={code} setCode={setCode} language={language} />
+          <div style={{ height: `${topHeight}%`, minHeight: "150px", display: "flex", flexDirection: "column", padding: "0 20px 10px" }}>
+            <CodeEditor code={code} setCode={setCode} language={language} height="100%" />
           </div>
+
+          {/* Vertical Resizer (Horizontal bar) */}
+          <div
+            onMouseDown={startResizingV}
+            style={{
+              height: "4px",
+              cursor: "row-resize",
+              background: isResizingV ? "var(--color-blue)" : "transparent",
+              transition: "background 0.2s",
+              zIndex: 10,
+              borderTop: "1px solid var(--color-border)",
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => { if (!isResizingV) e.target.style.background = "rgba(88, 166, 255, 0.3)"; }}
+            onMouseLeave={(e) => { if (!isResizingV) e.target.style.background = "transparent"; }}
+          />
 
           {/* Submit error banner */}
           {submitError && (
@@ -416,6 +493,8 @@ function ProblemDetails() {
               padding: "16px 20px",
               overflow: "auto",
               borderTop: "1px solid var(--color-border)",
+              background: "var(--color-bg-secondary)",
+              minHeight: "120px",
             }}
           >
             <div

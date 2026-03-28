@@ -81,8 +81,9 @@ int main() {
  *   code        (string)  — current code value
  *   setCode     (fn)      — setter for code
  *   language    (string)  — currently selected language id
+ *   height      (string)  — height of the editor (default: 100%)
  */
-function CodeEditor({ code, setCode, language = "cpp" }) {
+function CodeEditor({ code, setCode, language = "cpp", height = "100%" }) {
   // Find the monaco language string for the selected language
   const langDef = LANGUAGES.find((l) => l.id === language) || LANGUAGES[0];
 
@@ -92,10 +93,11 @@ function CodeEditor({ code, setCode, language = "cpp" }) {
         borderRadius: "8px",
         overflow: "hidden",
         border: "1px solid var(--color-border)",
+        height: height,
       }}
     >
       <Editor
-        height="420px"
+        height="100%"
         language={langDef.monacoLang}
         value={code}
         onChange={(val) => setCode(val || "")}

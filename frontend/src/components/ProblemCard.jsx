@@ -55,16 +55,50 @@ function ProblemCard({ problem, index }) {
 
       {/* Title */}
       <td style={{ padding: "16px 12px" }}>
-        <span
-          style={{
-            fontWeight: "500",
-            fontSize: "14px",
-            color: "var(--color-text-primary)",
-            transition: "color 0.15s",
-          }}
-        >
-          {problem.title}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {problem.isSolved && (
+            <div
+              title="Solved"
+              style={{
+                width: "18px",
+                height: "18px",
+                borderRadius: "50%",
+                background: "rgba(63, 185, 80, 0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--color-green)",
+                flexShrink: 0,
+              }}
+            >
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          )}
+          {!problem.isSolved && (
+             <div
+               title="Unsolved"
+               style={{
+                 width: "18px",
+                 height: "18px",
+                 borderRadius: "50%",
+                 border: "1.5px solid var(--color-border)",
+                 flexShrink: 0,
+               }}
+             />
+          )}
+          <span
+            style={{
+              fontWeight: "500",
+              fontSize: "14px",
+              color: "var(--color-text-primary)",
+              transition: "color 0.15s",
+            }}
+          >
+            {problem.title}
+          </span>
+        </div>
       </td>
 
       {/* Difficulty */}

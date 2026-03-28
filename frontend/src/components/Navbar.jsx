@@ -43,7 +43,7 @@ function Navbar() {
       >
         {/* Logo */}
         <Link
-          to="/problems"
+          to="/home"
           style={{
             display: "flex",
             alignItems: "center",
@@ -87,6 +87,9 @@ function Navbar() {
 
         {/* Center links */}
         <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <NavLink to="/home" active={isActive("/home")}>
+            Home
+          </NavLink>
           <NavLink to="/problems" active={isActive("/problems")}>
             Problems
           </NavLink>

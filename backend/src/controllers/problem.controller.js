@@ -13,8 +13,26 @@ const createProblem = async (req, res) => {
 const getAllProblems = async (req, res) => {
   try {
     const problems = await Problem.find().select("title difficulty");
-    res.status(200).json(problems);
+    
+    // If user is authenticated, check which problems they have solved
+    let solvedProblemIds = new Set();
+    if (req.user) {
+      const acceptedSubmissions = await Submission.find({
+        userId: req.user._id,
+        status: "Accepted"
+      }).select("problemId");
+      
+      solvedProblemIds = new Set(acceptedSubmissions.map(s => s.problemId.toString()));
+    }
+
+    const problemsWithSolved = problems.map(p => ({
+      ...p.toObject(),
+      isSolved: solvedProblemIds.has(p._id.toString())
+    }));
+
+    res.status(200).json(problemsWithSolved);
   } catch (error) {
+    console.error("Fetch Problems Error:", error);
     res.status(500).json({ message: "Error fetching problems" });
   }
 };

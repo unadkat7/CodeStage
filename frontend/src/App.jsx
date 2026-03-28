@@ -5,6 +5,7 @@ import Signup from "./pages/Signup";
 import Problems from "./pages/Problems";
 import ProblemDetails from "./pages/ProblemDetails";
 import Submission from "./pages/Submission";
+import Home from "./pages/Home";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -25,13 +26,22 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Default redirect */}
+        <Route path="/" element={<Navigate to="/home" replace />} />
 
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
         {/* Protected routes */}
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/problems"
           element={

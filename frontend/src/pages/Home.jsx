@@ -58,6 +58,26 @@ function Home() {
     };
   })();
 
+  // Rank / Badge Logic
+  const getRank = (solved) => {
+    if (solved >= 50) return { name: "Legend", color: "#ff8c00", icon: "👑" };
+    if (solved >= 25) return { name: "Knight", color: "#58a6ff", icon: "⚔️" };
+    if (solved >= 10) return { name: "Guardian", color: "#3fb950", icon: "🛡️" };
+    return { name: "Novice", color: "#8b949e", icon: "🌱" };
+  };
+  const rank = getRank(stats.solved);
+
+  // Dynamic Greeting
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  })();
+
+  // Problem to Resume (First unsolved)
+  const resumeProblem = problems.find(p => !p.isSolved);
+
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-bg-primary)" }}>
       <Navbar />
@@ -65,6 +85,10 @@ function Home() {
       <main style={{ maxWidth: "1000px", margin: "0 auto", padding: "60px 24px" }}>
         {/* Hero Section */}
         <section className="fade-in" style={{ textAlign: "center", marginBottom: "64px" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.05)", padding: "6px 14px", borderRadius: "100px", marginBottom: "20px", border: "1px solid var(--color-border)" }}>
+            <span style={{ fontSize: "14px" }}>{rank.icon}</span>
+            <span style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em", color: rank.color }}>{rank.name} Rank</span>
+          </div>
           <h1 style={{ 
             fontSize: "48px", 
             fontWeight: "800", 
@@ -74,7 +98,7 @@ function Home() {
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}>
-            Welcome back, {user?.name}
+            {greeting}, {user?.name}
           </h1>
           <p style={{ 
             fontSize: "18px", 
@@ -85,11 +109,22 @@ function Home() {
             Sharpen your coding skills, master algorithms, and track your progress all in one place. Ready for your next challenge?
           </p>
           <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
-            <button onClick={() => navigate("/problems")} className="btn-primary" style={{ padding: "12px 28px", fontSize: "16px" }}>
-              Browse All Problems
-            </button>
-            <button onClick={() => window.open("https://github.com", "_blank")} className="btn-secondary" style={{ padding: "12px 28px", fontSize: "16px" }}>
-              Learn More
+            {resumeProblem ? (
+              <button 
+                onClick={() => navigate(`/problem/${resumeProblem._id}`)} 
+                className="btn-primary" 
+                style={{ padding: "12px 28px", fontSize: "16px", display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                Resume: {resumeProblem.title}
+              </button>
+            ) : (
+              <button onClick={() => navigate("/problems")} className="btn-primary" style={{ padding: "12px 28px", fontSize: "16px" }}>
+                Browse All Problems
+              </button>
+            )}
+            <button onClick={() => navigate("/problems")} className="btn-secondary" style={{ padding: "12px 28px", fontSize: "16px" }}>
+              Explore Library
             </button>
           </div>
         </section>

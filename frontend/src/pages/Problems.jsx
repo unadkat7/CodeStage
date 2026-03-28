@@ -17,8 +17,12 @@ function Problems() {
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Search & Filter State
   const [search, setSearch] = useState("");
   const [diffFilter, setDiffFilter] = useState("all");
+  const [sortConfig, setSortConfig] = useState({ key: "id", direction: "asc" }); // key: id | title | difficulty
+
 
   // Check if we came from a successful registration
   const queryParams = new URLSearchParams(location.search);
@@ -38,16 +42,37 @@ function Problems() {
     fetchProblems();
   }, []);
 
-  // Filter problems by search + difficulty
+  // Filter Logic
   const filtered = problems.filter((p) => {
-    const matchSearch = p.title
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const matchDiff =
-      diffFilter === "all" ||
-      p.difficulty?.toLowerCase() === diffFilter;
+    const matchSearch = p.title.toLowerCase().includes(search.toLowerCase());
+    const matchDiff = diffFilter === "all" || p.difficulty?.toLowerCase() === diffFilter;
     return matchSearch && matchDiff;
   });
+
+  // Sort Logic
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortConfig.key === "id") {
+      return sortConfig.direction === "asc" ? a._id.localeCompare(b._id) : b._id.localeCompare(a._id);
+    }
+    if (sortConfig.key === "title") {
+      return sortConfig.direction === "asc" ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
+    }
+    if (sortConfig.key === "difficulty") {
+      const order = { easy: 1, medium: 2, hard: 3 };
+      const valA = order[a.difficulty?.toLowerCase()] || 0;
+      const valB = order[b.difficulty?.toLowerCase()] || 0;
+      return sortConfig.direction === "asc" ? valA - valB : valB - valA;
+    }
+    return 0;
+  });
+
+  const requestSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
 
   // Stats
   const counts = {
@@ -199,14 +224,20 @@ function Problems() {
                     background: "var(--color-bg-tertiary)",
                   }}
                 >
-                  <th style={thStyle}>#</th>
-                  <th style={{ ...thStyle, textAlign: "left" }}>Title</th>
-                  <th style={{ ...thStyle, textAlign: "left" }}>Difficulty</th>
+                  <th style={{ ...thStyle, cursor: "pointer" }} onClick={() => requestSort("id")}>
+                    # {sortConfig.key === "id" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+                  </th>
+                  <th style={{ ...thStyle, textAlign: "left", cursor: "pointer" }} onClick={() => requestSort("title")}>
+                    Title {sortConfig.key === "title" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+                  </th>
+                  <th style={{ ...thStyle, textAlign: "left", cursor: "pointer" }} onClick={() => requestSort("difficulty")}>
+                    Difficulty {sortConfig.key === "difficulty" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+                  </th>
                   <th style={thStyle}></th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((problem, index) => (
+                {sorted.map((problem, index) => (
                   <ProblemCard
                     key={problem._id}
                     problem={problem}

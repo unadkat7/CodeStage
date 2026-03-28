@@ -5,6 +5,8 @@ import CodeEditor, { LANGUAGES, STARTER_CODE } from "../components/CodeEditor";
 import SubmissionPanel from "../components/SubmissionPanel";
 import Navbar from "../components/Navbar";
 import { DifficultyBadge } from "../components/ProblemCard";
+import { useToast } from "../context/ToastContext";
+import ConfirmModal from "../components/ConfirmModal";
 
 /**
  * Polling interval in milliseconds
@@ -40,11 +42,14 @@ function ProblemDetails() {
   const [activeTab, setActiveTab] = useState("description"); // description | testcases | history
   const [activePanel, setActivePanel] = useState("result"); // result (right bottom tab)
 
+  const { addToast } = useToast();
+
   // Resizing state
   const [leftWidth, setLeftWidth] = useState(45); // percentage
   const [topHeight, setTopHeight] = useState(65); // percentage
   const [isResizingH, setIsResizingH] = useState(false);
   const [isResizingV, setIsResizingV] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   // Refs for polling and containers
   const pollRef = useRef(null);
@@ -136,6 +141,7 @@ function ProblemDetails() {
 
       // Immediately show "Pending" state
       setSubmission({ status: "Pending", _id: res.data.submissionId });
+      addToast("Submission queued! Judging...", "success");
       startPolling(res.data.submissionId);
     } catch (err) {
       setSubmitError(
@@ -167,6 +173,7 @@ function ProblemDetails() {
       
       // Unlike submit, run doesn't poll. We get the result immediately.
       setSubmission(res.data);
+      addToast("Code execution complete", "info");
     } catch (err) {
       setSubmitError(
         err.response?.data?.message || "Run failed. Please try again."
@@ -175,6 +182,12 @@ function ProblemDetails() {
       setIsRunning(false);
     }
   };
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    addToast("Copied to clipboard", "success");
+  };
+
   // ── Resizing Logic ─────────────────────────────────────────────────────────
   const startResizingH = useCallback(() => setIsResizingH(true), []);
   const startResizingV = useCallback(() => setIsResizingV(true), []);
@@ -437,7 +450,7 @@ function ProblemDetails() {
             {/* Reset code */}
             <button
               id="reset-code-btn"
-              onClick={() => setCode(STARTER_CODE[language] || "")}
+              onClick={() => setIsResetModalOpen(true)}
               className="btn-secondary"
               style={{ padding: "7px 14px", fontSize: "13px" }}
               title="Reset to starter code"
@@ -568,6 +581,20 @@ function ProblemDetails() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={isResetModalOpen}
+        title="Reset Code?"
+        message="Are you sure you want to reset your code to the starter template? All your current changes for this problem will be lost."
+        confirmText="Reset Code"
+        variant="danger"
+        onCancel={() => setIsResetModalOpen(false)}
+        onConfirm={() => {
+          setCode(STARTER_CODE[language] || "");
+          setIsResetModalOpen(false);
+          addToast("Code reset to template", "info");
+        }}
+      />
     </div>
   );
 }
@@ -720,7 +747,16 @@ function TestCasesTab({ testCases }) {
               borderBottom: "1px solid var(--color-border)",
             }}
           >
-            Test Case {i + 1}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+               <span>Test Case {i + 1}</span>
+               <button 
+                 onClick={() => handleCopy(tc.input)}
+                 style={{ background: "none", border: "none", color: "var(--color-blue)", fontSize: "11px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", padding: "0" }}
+               >
+                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                 Copy Input
+               </button>
+            </div>
           </div>
           <div style={{ padding: "12px 14px" }}>
             <div style={{ marginBottom: "10px" }}>

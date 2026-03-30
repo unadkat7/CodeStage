@@ -111,7 +111,7 @@ function Home() {
           <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
             {resumeProblem ? (
               <button 
-                onClick={() => navigate(`/problem/${resumeProblem._id}`)} 
+                onClick={() => navigate(`/problems/${resumeProblem._id}`)} 
                 className="btn-primary" 
                 style={{ padding: "12px 28px", fontSize: "16px", display: "flex", alignItems: "center", gap: "8px" }}
               >

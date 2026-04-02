@@ -1,149 +1,117 @@
 # 🚀 CodeStage – Online Coding Evaluation Platform
 
-CodeStage is a scalable coding platform designed to evaluate programming submissions efficiently using an asynchronous job processing architecture. It supports secure code execution, multiple test cases, and real-time submission tracking.
+CodeStage is a scalable coding platform designed to evaluate programming submissions efficiently using an asynchronous job processing architecture.
 
 ---
 
 ## 📌 Features
 
-- 🧠 **Online Code Execution**
-  - Supports multiple programming languages via Judge0
-  - Handles custom input/output test cases
-
-- ⚡ **Asynchronous Processing (Optimized Backend)**
-  - Built using **BullMQ + Redis queue**
-  - Non-blocking submission handling
-  - Worker-based execution system
-
-- 🔐 **Secure Evaluation Engine**
-  - Base64 encoding for safe transmission
-  - Hidden test cases support
-  - Error normalization
-
-- 📊 **Submission Tracking**
-  - Stores execution time & memory
-  - Tracks failed test cases
-  - Maintains submission history (user-linked)
-
-- 👤 **Authentication System**
-  - JWT-based login/register
-  - User-specific submissions & history
-
-- 📡 **Real-time Updates (Planned / Partial)**
-  - WebSocket integration (Socket.IO ready)
+- 🧠 Online Code Execution (Judge0)
+- ⚡ Asynchronous Processing using BullMQ + Redis
+- 🔐 Secure Evaluation (Base64, hidden test cases)
+- 📊 Submission Tracking (time, memory, failed cases)
+- 👤 JWT Authentication
+- 📡 WebSocket support (planned)
 
 ---
 
 ## 🏗️ Tech Stack
 
-### Backend
-- Node.js + Express.js
-- MongoDB + Mongoose
-- Redis + BullMQ (Queue System)
-- Judge0 API (Code Execution Engine)
-- Socket.IO (for real-time updates)
+**Backend**
+- Node.js, Express.js
+- MongoDB, Mongoose
+- Redis, BullMQ
+- Judge0 API
 
-### Frontend (Planned / In Progress)
-- React.js / Next.js
+**Frontend (Planned)**
+- React / Next.js
 - Tailwind CSS
 
 ---
 
 ## ⚙️ System Architecture
-User Submission
-↓
-Backend API (Express)
-↓
-MongoDB (Store as Pending)
-↓
-Redis Queue (BullMQ)
-↓
-Worker Process
-↓
-Judge0 Execution
-↓
-Update DB + Emit Result
 
+User Submission → Backend API → MongoDB (Pending) → Redis Queue → Worker → Judge0 → Update DB
 
 ---
 
-## 🔄 Workflow Explained
+## 🔄 Workflow
 
 1. User submits code  
-2. Submission stored in MongoDB with status **Pending**  
-3. Job pushed into **Redis Queue**  
-4. Worker picks up job asynchronously  
-5. Code sent to **Judge0 API**  
-6. Results processed (time, memory, output)  
-7. MongoDB updated with final result  
-8. (Optional) WebSocket emits result to frontend  
+2. Stored in MongoDB (Pending)  
+3. Job added to Redis queue  
+4. Worker processes it  
+5. Judge0 executes code  
+6. Result stored in DB  
+7. Short polling used in frontend  
 
 ---
 
 ## 📁 Project Structure
-backend/
-│── src/
-│ ├── controllers/
-│ ├── models/
-│ ├── routes/
-│ ├── queue/ # BullMQ queue setup
-│ ├── workers/ # Worker processes
-│ ├── utils/
-│ └── seed/
-│
-│── .env
-│── server.js
 
+backend/
+├── src/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── queue/
+│   ├── workers/
+│   ├── utils/
+│   └── seed/
+├── .env
+└── server.js
 
 ---
 
-## 🧪 Sample Problem Structure
+## 🚀 Setup
 
-```json
-{
-  "title": "Two Sum",
-  "description": "Find indices of two numbers...",
-  "difficulty": "Easy",
-  "testCases": [
-    {
-      "input": "4\n2 7 11 15\n9",
-      "output": "0 1"
-    }
-  ]
-}
+1. Clone repo  
+git clone https://github.com/your-username/codestage.git  
+cd codestage  
 
-🚀 Getting Started
-1️⃣ Clone the Repository
-git clone https://github.com/your-username/assesslyx.git
-cd assesslyx
-2️⃣ Install Dependencies
-npm install
-3️⃣ Setup Environment Variables
+2. Install dependencies  
+npm install  
 
-Create a .env file:
+3. Create `.env` file  
 
-PORT=5000
-MONGO_URI=your_mongodb_uri
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-JUDGE0_API_URL=your_judge0_url
-JWT_SECRET=your_secret
-4️⃣ Start Redis Server
-redis-server
-5️⃣ Run Backend Server
-npm run dev
-6️⃣ Run Worker (Important ⚠️)
-node src/workers/worker.js
+PORT=5000  
+MONGO_URI=your_mongodb_uri  
+REDIS_HOST=127.0.0.1  
+REDIS_PORT=6379  
+JUDGE0_API_URL=your_judge0_url  
+JWT_SECRET=your_secret  
 
-📈 Why This Project is Strong (Engineering Highlights)
-Implements queue-based architecture (used in real-world systems)
-Prevents blocking of main server thread
-Scalable design (can add multiple workers)
-Handles high concurrency efficiently
-Clean separation of concerns (API vs Worker)
-🔮 Future Improvements
-✅ Full frontend integration
-🔄 Live submission updates via WebSockets
-📊 Leaderboard & ranking system
-🧠 AI-based code feedback
-🧪 Contest mode (timed challenges)
+4. Start Redis  
+redis-server  
+
+5. Run backend  
+npm run dev  
+
+6. Run worker  
+node src/workers/worker.js  
+
+---
+
+## 📈 Highlights
+
+- Queue-based architecture (real-world scalable design)
+- Non-blocking backend
+- Supports concurrency via workers
+- Clean separation (API vs Worker)
+
+---
+
+## 🔮 Future Improvements
+
+- Frontend integration  
+- WebSocket live updates  
+- Leaderboard system  
+- AI-based feedback  
+- Contest mode  
+
+---
+
+## 👨‍💻 Author
+
+Jay Unadkat  
+MERN Stack Developer

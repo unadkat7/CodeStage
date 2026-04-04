@@ -14,7 +14,7 @@ export function ToastProvider({ children }) {
     // Auto remove
     setTimeout(() => {
       removeToast(id);
-    }, 4000);
+    }, 3500);
   }, []);
 
   const removeToast = useCallback((id) => {
@@ -34,12 +34,13 @@ function ToastContainer({ toasts, removeToast }) {
     <div
       style={{
         position: "fixed",
-        bottom: "24px",
+        top: "24px",
         right: "24px",
-        zIndex: 1000,
+        zIndex: 5000,
         display: "flex",
         flexDirection: "column",
-        gap: "10px",
+        gap: "4px",
+        maxWidth: "320px",
       }}
     >
       {toasts.map((toast) => (
@@ -50,29 +51,37 @@ function ToastContainer({ toasts, removeToast }) {
 }
 
 function ToastItem({ toast, onRemove }) {
-  const isError = toast.type === "error";
+  const isError = toast.type === "error" || toast.type === "danger";
   const isSuccess = toast.type === "success";
+  
+  const borderColor = isError ? "var(--red)" : isSuccess ? "var(--green)" : "var(--accent)";
+  const labelPrefix = isError ? "[! ERROR]" : isSuccess ? "[+ SUCCESS]" : "[* INFO]";
 
   return (
     <div
-      className="fade-in"
+      onClick={onRemove}
       style={{
-        background: isError ? "#f85149" : isSuccess ? "#3fb950" : "#30363d",
+        background: "#000",
         color: "#fff",
-        padding: "12px 20px",
-        borderRadius: "8px",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+        padding: "10px 16px",
+        borderLeft: `5px solid ${borderColor}`,
+        border: `1px solid var(--border)`,
         display: "flex",
         alignItems: "center",
         gap: "12px",
-        minWidth: "240px",
-        border: "1px solid rgba(255,255,255,0.1)",
         cursor: "pointer",
+        fontFamily: "var(--font-mono)",
+        fontSize: "11px",
+        boxShadow: "4px 4px 0 var(--border)",
       }}
-      onClick={onRemove}
     >
-      <div style={{ flex: 1, fontSize: "14px", fontWeight: "500" }}>{toast.message}</div>
-      <button style={{ background: "none", border: "none", color: "#fff", opacity: 0.6, cursor: "pointer", padding: "4px" }}>✕</button>
+      <div style={{ flex: 1, fontWeight: "800" }}>
+        <span style={{ color: borderColor, marginRight: "8px" }}>{labelPrefix}</span>
+        {toast.message?.toUpperCase()}
+      </div>
+      <button style={{ background: "none", border: "none", color: "var(--text-dim)", cursor: "pointer", fontWeight: "900", fontSize: "12px" }}>
+        [X]
+      </button>
     </div>
   );
 }

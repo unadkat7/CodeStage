@@ -1,138 +1,76 @@
 import { useNavigate } from "react-router-dom";
 
 /**
- * Difficulty badge — colored chip for easy/medium/hard.
+ * DifficultyBadge — Refactored to Tailwind.
  */
-function DifficultyBadge({ difficulty }) {
-  const map = {
-    easy: "badge-easy",
-    medium: "badge-medium",
-    hard: "badge-hard",
-  };
+export function DifficultyBadge({ difficulty }) {
+  const d = difficulty?.toLowerCase();
+  const colorClass = 
+    d === "easy" ? "border-success text-success" : 
+    d === "medium" ? "border-yellow-500 text-yellow-500" : 
+    "border-error text-error";
+
   return (
-    <span className={map[difficulty?.toLowerCase()] || "badge-easy"}>
-      {difficulty}
+    <span className={`badge-brutal ${colorClass}`}>
+      {difficulty?.toUpperCase()}
     </span>
   );
 }
 
 /**
- * ProblemCard — row item inside the problem list table.
- * Props: problem { _id, title, difficulty }, index (row number)
+ * ProblemCard — Table row refactored to clean Tailwind.
  */
 function ProblemCard({ problem, index }) {
   const navigate = useNavigate();
-
   const handleClick = () => navigate(`/problems/${problem._id}`);
 
   return (
     <tr
       onClick={handleClick}
-      style={{
-        cursor: "pointer",
-        transition: "background 0.15s ease",
-        borderBottom: "1px solid var(--color-border-muted)",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "rgba(88, 166, 255, 0.04)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "transparent";
-      }}
+      className="group cursor-pointer border-b border-border bg-black hover:bg-surface transition-colors"
     >
       {/* Index */}
-      <td
-        style={{
-          padding: "16px 20px",
-          color: "var(--color-text-muted)",
-          fontSize: "13px",
-          fontWeight: "500",
-          width: "60px",
-        }}
-      >
-        {index + 1}
+      <td className="px-4 py-2.5 text-[11px] font-mono text-text-dim border-r border-border w-12 select-none group-hover:text-accent">
+        {String(index + 1).padStart(2, "0")}
       </td>
 
-      {/* Title */}
-      <td style={{ padding: "16px 12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          {problem.isSolved && (
-            <div
-              title="Solved"
-              style={{
-                width: "18px",
-                height: "18px",
-                borderRadius: "50%",
-                background: "rgba(63, 185, 80, 0.15)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--color-green)",
-                flexShrink: 0,
-              }}
-            >
-              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          )}
-          {!problem.isSolved && (
-             <div
-               title="Unsolved"
-               style={{
-                 width: "18px",
-                 height: "18px",
-                 borderRadius: "50%",
-                 border: "1.5px solid var(--color-border)",
-                 flexShrink: 0,
-               }}
-             />
-          )}
-          <span
-            style={{
-              fontWeight: "500",
-              fontSize: "14px",
-              color: "var(--color-text-primary)",
-              transition: "color 0.15s",
-            }}
+      {/* Status + Title */}
+      <td className="px-4 py-2.5">
+        <div className="flex items-center gap-3">
+          {/* Solved indicator — Sharp Square */}
+          <div
+            className={`w-3.5 h-3.5 border flex items-center justify-center shrink-0 ${
+              problem.isSolved ? "bg-success border-success" : "bg-transparent border-border"
+            }`}
           >
+            {problem.isSolved && (
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="black">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+              </svg>
+            )}
+          </div>
+
+          <span className={`text-[13px] font-mono uppercase tracking-tighter transition-colors group-hover:text-accent ${
+            problem.isSolved ? "font-normal" : "font-black"
+          }`}>
             {problem.title}
           </span>
         </div>
       </td>
 
       {/* Difficulty */}
-      <td style={{ padding: "16px 12px" }}>
+      <td className="px-4 py-2.5 w-24 text-center">
         <DifficultyBadge difficulty={problem.difficulty} />
       </td>
 
-      {/* Arrow */}
-      <td
-        style={{
-          padding: "16px 20px",
-          textAlign: "right",
-          color: "var(--color-text-muted)",
-        }}
-      >
-        <svg
-          width="16"
-          height="16"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          style={{ display: "inline-block" }}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
+      {/* Action Hint */}
+      <td className="px-4 py-2.5 text-right w-20">
+        <span className="text-[10px] font-black text-text-dim opacity-0 group-hover:opacity-100 transition-opacity">
+          OPEN_
+        </span>
       </td>
     </tr>
   );
 }
 
-export { DifficultyBadge };
 export default ProblemCard;

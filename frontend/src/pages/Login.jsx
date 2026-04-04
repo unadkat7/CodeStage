@@ -4,8 +4,7 @@ import { authAPI } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
 
 /**
- * Login Page — Email + Password sign-in form.
- * On success, stores token + user in AuthContext, redirects to /problems.
+ * Login Page — Brutalist Sign-In refactored to clean Tailwind.
  */
 function Login() {
   const navigate = useNavigate();
@@ -22,221 +21,81 @@ function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const res = await authAPI.login(formData);
-      // Store token AND user object
       login(res.data.token, res.data.user);
-      navigate("/problems");
+      navigate("/home");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed. Please try again.");
+      setError(err.response?.data?.message?.toUpperCase() || "LOGIN_FAILED");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background:
-          "radial-gradient(ellipse 80% 60% at 50% -20%, rgba(56, 139, 253, 0.08) 0%, transparent 60%), var(--color-bg-primary)",
-        padding: "24px",
-      }}
-    >
-      <div
-        className="slide-up"
-        style={{
-          width: "100%",
-          maxWidth: "420px",
-        }}
-      >
-        {/* Logo / Brand */}
-        <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <div
-            style={{
-              width: "52px",
-              height: "52px",
-              borderRadius: "14px",
-              background: "linear-gradient(135deg, #1f6feb, #8957e5)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "24px",
-              fontWeight: "800",
-              color: "white",
-              margin: "0 auto 16px",
-              boxShadow:
-                "0 0 0 1px rgba(255,255,255,0.06), 0 0 40px rgba(56, 139, 253, 0.3)",
-            }}
-          >
-            C
+    <div className="min-h-screen flex items-center justify-center bg-black p-6 font-mono">
+      <div className="w-full max-w-[380px]">
+        
+        {/* ── Logo + Header ── */}
+        <div className="text-center mb-10">
+           <div className="bg-accent text-black px-3 py-1 font-black text-lg inline-block mb-4">
+            {">_ CODESTAGE"}
           </div>
-          <h1
-            style={{
-              fontSize: "24px",
-              fontWeight: "800",
-              background: "linear-gradient(135deg, #e6edf3, #8b949e)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              letterSpacing: "-0.03em",
-              margin: "0 0 8px",
-            }}
-          >
-            Welcome back
+          <h1 className="text-sm font-black text-white uppercase tracking-widest">
+            [ SYSTEM_AUTHENTICATION ]
           </h1>
-          <p
-            style={{
-              color: "var(--color-text-muted)",
-              fontSize: "14px",
-              margin: 0,
-            }}
-          >
-            Sign in to your CodeStage account
-          </p>
         </div>
 
-        {/* Form Card */}
+        {/* ── Form Card ── */}
         <form
           onSubmit={handleSubmit}
-          style={{
-            background: "var(--color-bg-secondary)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "14px",
-            padding: "32px",
-            boxShadow: "0 0 0 1px rgba(255,255,255,0.03)",
-          }}
+          className="card-brutal bg-black"
         >
-          {/* Error message */}
           {error && (
-            <div
-              className="fade-in"
-              style={{
-                background: "rgba(248, 81, 73, 0.08)",
-                border: "1px solid rgba(248, 81, 73, 0.3)",
-                borderRadius: "8px",
-                padding: "12px 14px",
-                marginBottom: "20px",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "8px",
-              }}
-            >
-              <svg
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                style={{ color: "var(--color-red)", flexShrink: 0, marginTop: "1px" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <span style={{ color: "var(--color-red)", fontSize: "13px" }}>
-                {error}
-              </span>
+            <div className="border border-error p-2.5 mb-5 text-error text-[11px] font-black bg-error/10 uppercase tracking-tight">
+              ERROR: {error}
             </div>
           )}
 
-          {/* Email */}
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "13px",
-                fontWeight: "600",
-                color: "var(--color-text-secondary)",
-                marginBottom: "6px",
-              }}
-            >
-              Email address
-            </label>
+          <div className="mb-5">
+            <label className="block text-[10px] font-black text-text-muted mb-2 uppercase tracking-wide">EMAIL_ADDRESS</label>
             <input
-              id="login-email"
               type="email"
               name="email"
-              placeholder="you@example.com"
+              placeholder="operator@codestage.sys"
               value={formData.email}
               onChange={handleChange}
               required
-              className="input-field"
-              autoComplete="email"
+              className="input-brutal h-11"
             />
           </div>
 
-          {/* Password */}
-          <div style={{ marginBottom: "24px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "13px",
-                fontWeight: "600",
-                color: "var(--color-text-secondary)",
-                marginBottom: "6px",
-              }}
-            >
-              Password
-            </label>
+          <div className="mb-6">
+            <label className="block text-[10px] font-black text-text-muted mb-2 uppercase tracking-wide">ACCESS_KEY</label>
             <input
-              id="login-password"
               type="password"
               name="password"
-              placeholder="••••••••"
+              placeholder="********"
               value={formData.password}
               onChange={handleChange}
               required
-              className="input-field"
-              autoComplete="current-password"
+              className="input-brutal h-11"
             />
           </div>
 
-          {/* Submit */}
           <button
-            id="login-submit"
             type="submit"
             disabled={loading}
-            className="btn-primary"
-            style={{ width: "100%", justifyContent: "center", padding: "12px" }}
+            className="btn-brutal w-full justify-center h-12"
           >
-            {loading ? (
-              <>
-                <div className="spinner" style={{ width: "16px", height: "16px" }} />
-                Signing in…
-              </>
-            ) : (
-              "Sign In"
-            )}
+            {loading ? "INITIALIZING..." : "LOGIN_TO_SYSTEM"}
           </button>
         </form>
 
-        {/* Footer link */}
-        <p
-          style={{
-            textAlign: "center",
-            marginTop: "20px",
-            fontSize: "14px",
-            color: "var(--color-text-muted)",
-          }}
-        >
-          Don&apos;t have an account?{" "}
-          <Link
-            to="/signup"
-            style={{
-              color: "var(--color-blue)",
-              fontWeight: "600",
-              textDecoration: "none",
-            }}
-          >
-            Sign up
+        <p className="text-center mt-6 text-[11px] text-text-dim font-bold uppercase tracking-widest">
+          NEW_OPERATOR?{" "}
+          <Link to="/signup" className="text-accent underline decoration-accent/30 decoration-2 underline-offset-4 hover:text-white transition-colors">
+            [ CREATE_ACCOUNT ]
           </Link>
         </p>
       </div>

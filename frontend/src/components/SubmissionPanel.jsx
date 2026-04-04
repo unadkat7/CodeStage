@@ -1,257 +1,149 @@
 /**
- * SubmissionPanel — Displays the result of the latest submission.
- *
- * Props:
- *   submission  — latest submission object (or null when not yet submitted)
- *   isPolling   — boolean, true while waiting for result (submit)
- *   isRunning   — boolean, true while waiting for result (run)
+ * SubmissionPanel — Terminal-style result display with Brutalist design.
+ * Sharp edges, high contrast, pure black/accent colors.
  */
 function SubmissionPanel({ submission, isPolling, isRunning }) {
-  // ── Not yet submitted ──────────────────────────────────────────────────────
+
+  // ── Not yet submitted ──────────────────────────────────────────
   if (!submission) {
     return (
       <div
-        className="fade-in"
         style={{
-          border: "1px dashed var(--color-border)",
-          borderRadius: "10px",
-          padding: "40px 24px",
+          border: "1px dashed var(--border)",
+          padding: "32px 20px",
           textAlign: "center",
-          color: "var(--color-text-muted)",
+          color: "var(--text-dim)",
+          fontFamily: "var(--font-mono)",
+          fontSize: "11px",
         }}
       >
-        <svg
-          width="40"
-          height="40"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          style={{ margin: "0 auto 12px", opacity: 0.4 }}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <p style={{ fontSize: "14px", fontWeight: "500" }}>No submission yet</p>
-        <p style={{ fontSize: "12px", marginTop: "4px" }}>
-          Write your solution and click Submit
-        </p>
+        <div style={{ color: "var(--text-muted)", fontWeight: "700" }}>// NO_OUTPUT_RECORDED</div>
+        <div style={{ marginTop: "4px", opacity: 0.5 }}>awaiting run or submit command...</div>
       </div>
     );
   }
 
-  // ── Polling / Pending / Running ───────────────────────────────────────────
+  // ── Polling / Running / Pending ────────────────────────────────
   if (isPolling || isRunning || submission.status === "Pending") {
     return (
       <div
-        className="fade-in"
         style={{
-          border: "1px solid rgba(210, 153, 34, 0.3)",
-          borderRadius: "10px",
-          padding: "28px 24px",
-          background: "rgba(210, 153, 34, 0.05)",
+          border: "1px solid var(--accent)",
+          background: "var(--accent-muted)",
+          padding: "16px 20px",
+          borderLeft: "4px solid var(--accent)",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            marginBottom: "12px",
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div className="spinner" />
           <div>
-            <div
-              style={{
-                fontWeight: "600",
-                fontSize: "15px",
-                color: "var(--color-yellow)",
-              }}
-            >
-              {isRunning ? "Running Code…" : "Evaluating…"}
+            <div style={{ fontWeight: "800", fontSize: "12px", color: "var(--accent)", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+              {isRunning ? "EXEC_IN_PROGRESS" : "JUDGING_IN_PROGRESS"}
             </div>
-            <div
-              style={{ fontSize: "12px", color: "var(--color-text-muted)", marginTop: "2px" }}
-            >
-              Your code is being judged. Please wait.
+            <div style={{ fontSize: "10px", color: "var(--text-dim)", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
+              // EVALUATING_SYSTEM_RESPONSE...
             </div>
           </div>
         </div>
-        {/* Progress bar */}
-        <div
-          style={{
-            height: "3px",
-            borderRadius: "2px",
-            background: "rgba(210, 153, 34, 0.15)",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              height: "100%",
-              width: "40%",
-              background: "var(--color-yellow)",
-              borderRadius: "2px",
-              animation: "progress 1.5s ease-in-out infinite alternate",
-            }}
-          />
-        </div>
-        <style>{`
-          @keyframes progress {
-            from { width: 10%; margin-left: 0; }
-            to { width: 60%; margin-left: 30%; }
-          }
-        `}</style>
       </div>
     );
   }
 
-  // ── Determine status theme ─────────────────────────────────────────────────
+  // ── Result display ────────────────────────────────────────────
   const status = submission.status;
   const isAccepted = status === "Accepted";
-  const isWrong = status === "Wrong Answer";
   const isCompileError = status === "Compilation Error";
   const isRuntimeError = status === "Runtime Error";
-  const isTLE = status === "Time Limit Exceeded";
 
-  const statusTheme = isAccepted
-    ? {
-        border: "rgba(63, 185, 80, 0.3)",
-        bg: "rgba(63, 185, 80, 0.05)",
-        color: "var(--color-green)",
-        icon: (
-          <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ),
-      }
-    : {
-        border: "rgba(248, 81, 73, 0.3)",
-        bg: "rgba(248, 81, 73, 0.05)",
-        color: "var(--color-red)",
-        icon: (
-          <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ),
-      };
+  const theme = isAccepted
+    ? { border: "var(--green)", color: "var(--green)", bg: "var(--success-muted)" }
+    : { border: "var(--red)", color: "var(--red)", bg: "var(--error-muted)" };
 
   return (
     <div
-      className="fade-in"
       style={{
-        border: `1px solid ${statusTheme.border}`,
-        borderRadius: "10px",
-        background: statusTheme.bg,
+        border: `1px solid var(--border)`,
+        background: "#000",
         overflow: "hidden",
+        borderLeft: `4px solid ${theme.border}`,
       }}
     >
-      {/* Header */}
+      {/* ── Status header ── */}
       <div
         style={{
-          padding: "16px 20px",
-          borderBottom: `1px solid ${statusTheme.border}`,
+          padding: "10px 16px",
+          borderBottom: `1px solid var(--border)`,
           display: "flex",
           alignItems: "center",
-          gap: "10px",
+          gap: "12px",
+          background: theme.bg,
         }}
       >
-        <span style={{ color: statusTheme.color }}>{statusTheme.icon}</span>
-        <div>
-          <div
-            style={{
-              fontWeight: "700",
-              fontSize: "16px",
-              color: statusTheme.color,
-            }}
-          >
-            {status}
+        <div style={{ fontWeight: "900", fontSize: "14px", color: theme.color, fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+          [{status}]
+        </div>
+        {submission._id && (
+          <div style={{ fontSize: "9px", color: "var(--text-dim)", fontFamily: "var(--font-mono)", opacity: 0.6 }}>
+            ID: {submission._id}
           </div>
-          {submission._id && (
-            <div style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>
-              ID: {submission._id}
-            </div>
+        )}
+      </div>
+
+      {/* ── Stats ── */}
+      {(submission.executionTime || submission.memoryUsed !== undefined || submission.language) && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0",
+            background: "var(--border)",
+            borderBottom: `1px solid var(--border)`,
+          }}
+        >
+          {submission.executionTime && (
+            <StatCell label="RUNTIME" value={submission.executionTime} />
+          )}
+          {submission.memoryUsed !== undefined && submission.memoryUsed !== null && (
+            <StatCell label="MEMORY" value={`${submission.memoryUsed} KB`} />
+          )}
+          {submission.language && (
+            <StatCell label="LANG" value={submission.language.toUpperCase()} />
+          )}
+          {submission.failedTestCase !== undefined && submission.failedTestCase !== null && (
+            <StatCell label="FAILED_ON" value={`#${submission.failedTestCase}`} color="var(--red)" />
           )}
         </div>
-      </div>
+      )}
 
-      {/* Stats grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-          gap: "1px",
-          background: statusTheme.border,
-        }}
-      >
-        {submission.executionTime && (
-          <StatCell
-            label="Runtime"
-            value={submission.executionTime}
-            icon="⏱"
-          />
-        )}
-        {submission.memoryUsed !== undefined && submission.memoryUsed !== null && (
-          <StatCell
-            label="Memory"
-            value={`${submission.memoryUsed} KB`}
-            icon="💾"
-          />
-        )}
-        {submission.language && (
-          <StatCell
-            label="Language"
-            value={submission.language.toUpperCase()}
-            icon="🔤"
-          />
-        )}
-        {submission.failedTestCase !== undefined &&
-          submission.failedTestCase !== null && (
-            <StatCell
-              label="Failed on"
-              value={`Test #${submission.failedTestCase}`}
-              icon="❌"
-            />
-          )}
-      </div>
-
-      {/* Output / Error */}
+      {/* ── Output / Error ── */}
       {submission.output && (
-        <div style={{ padding: "16px 20px" }}>
+        <div style={{ padding: "12px 16px" }}>
           <div
             style={{
-              fontSize: "12px",
-              fontWeight: "600",
-              color: "var(--color-text-muted)",
+              fontSize: "9px",
+              fontWeight: "800",
+              color: "var(--text-muted)",
               marginBottom: "8px",
               textTransform: "uppercase",
-              letterSpacing: "0.06em",
+              fontFamily: "var(--font-mono)",
             }}
           >
-            {isCompileError
-              ? "Compiler Output"
-              : isRuntimeError
-              ? "Runtime Output"
-              : "Output"}
+            {">_ "}{isCompileError ? "COMPILER_LOG" : isRuntimeError ? "RUNTIME_LOG" : "STDOUT"}
           </div>
           <pre
             style={{
-              background: "var(--color-bg-primary)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "6px",
-              padding: "12px 16px",
+              background: "#050505",
+              border: "1px solid var(--border)",
+              padding: "12px",
               fontSize: "12px",
-              fontFamily: "'JetBrains Mono', monospace",
-              color: isAccepted ? "var(--color-green)" : "var(--color-red)",
+              fontFamily: "var(--font-mono)",
+              color: isAccepted ? "var(--green)" : "var(--red)",
               whiteSpace: "pre-wrap",
               wordBreak: "break-all",
-              maxHeight: "200px",
+              maxHeight: "220px",
               overflowY: "auto",
               margin: 0,
+              lineHeight: 1.6,
             }}
           >
             {submission.output}
@@ -262,31 +154,13 @@ function SubmissionPanel({ submission, isPolling, isRunning }) {
   );
 }
 
-function StatCell({ label, value, icon }) {
+function StatCell({ label, value, color = "var(--text)" }) {
   return (
-    <div
-      style={{
-        background: "var(--color-bg-primary)",
-        padding: "12px 16px",
-      }}
-    >
-      <div
-        style={{
-          fontSize: "11px",
-          color: "var(--color-text-muted)",
-          marginBottom: "4px",
-        }}
-      >
-        {icon} {label}
+    <div style={{ background: "#000", padding: "8px 16px", flex: "1 1 auto", borderRight: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
+      <div style={{ fontSize: "9px", color: "var(--text-dim)", marginBottom: "2px", fontWeight: "700" }}>
+        {label}
       </div>
-      <div
-        style={{
-          fontSize: "14px",
-          fontWeight: "600",
-          color: "var(--color-text-primary)",
-          fontFamily: "'JetBrains Mono', monospace",
-        }}
-      >
+      <div style={{ fontSize: "12px", fontWeight: "800", color: color, fontFamily: "var(--font-mono)" }}>
         {value}
       </div>
     </div>

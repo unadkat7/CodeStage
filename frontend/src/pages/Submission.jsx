@@ -4,8 +4,7 @@ import Navbar from "../components/Navbar";
 import { submissionsAPI } from "../services/api";
 
 /**
- * Submission — dedicated page for viewing a single submission result.
- * Route: /submission/:submissionId
+ * Submission — Brutalist Record View refactored to clean Tailwind.
  */
 function Submission() {
   const { submissionId } = useParams();
@@ -21,7 +20,7 @@ function Submission() {
         const res = await submissionsAPI.getById(submissionId);
         setSubmission(res.data);
       } catch (err) {
-        setError("Submission not found or you don't have permission to view it.");
+        setError("ERROR: ACCESS_DENIED // RECORD_NOT_FOUND");
       } finally {
         setLoading(false);
       }
@@ -29,168 +28,92 @@ function Submission() {
     fetch();
   }, [submissionId]);
 
-  const statusColor = (s) => {
-    if (s === "Accepted") return "var(--color-green)";
-    if (s === "Pending") return "var(--color-yellow)";
-    return "var(--color-red)";
+  const statusColorClass = (s) => {
+    if (s === "Accepted") return "text-success border-success";
+    if (s === "Pending")  return "text-accent border-accent";
+    return "text-error border-error";
+  };
+
+  const statusTextColor = (s) => {
+    if (s === "Accepted") return "text-success";
+    if (s === "Pending")  return "text-accent";
+    return "text-error";
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--color-bg-primary)" }}>
+    <div className="min-h-screen bg-black font-mono text-white">
       <Navbar />
 
-      <main style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 24px" }}>
-        {/* Back */}
-        <button
-          onClick={() => navigate(-1)}
-          className="btn-secondary"
-          style={{ marginBottom: "24px", padding: "8px 16px", fontSize: "13px" }}
-        >
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back
-        </button>
-
-        <h1
-          style={{
-            fontSize: "24px",
-            fontWeight: "800",
-            letterSpacing: "-0.03em",
-            marginBottom: "24px",
-            background: "linear-gradient(135deg, #e6edf3, #8b949e)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}
-        >
-          Submission Details
-        </h1>
+      <main className="max-w-3xl mx-auto p-10">
+        {/* ── Control Header ── */}
+        <div className="mb-10 flex justify-between items-end border-b-2 border-border pb-3">
+          <div>
+            <div className="text-[10px] font-black text-text-dim mb-1 uppercase tracking-widest">
+              SYSTEM_REPORT // SUBMISSION_ID: {submissionId?.toUpperCase()}
+            </div>
+            <h1 className="text-3xl font-black uppercase tracking-tighter">
+              [ VIEW_RECORD ]
+            </h1>
+          </div>
+          <button
+            onClick={() => navigate(-1)}
+            className="btn-brutal-secondary h-8"
+          >
+            [ GO_BACK ]
+          </button>
+        </div>
 
         {loading ? (
-          <div style={{ display: "flex", gap: "12px", flexDirection: "column" }}>
-            <div className="skeleton" style={{ height: "100px", borderRadius: "12px" }} />
-            <div className="skeleton" style={{ height: "60px", borderRadius: "12px" }} />
+          <div className="text-accent p-10 text-center text-xs font-black animate-pulse tracking-widest">
+            RETRIEVING_DATA_STREAM...
           </div>
         ) : error ? (
-          <div
-            style={{
-              background: "rgba(248, 81, 73, 0.08)",
-              border: "1px solid rgba(248, 81, 73, 0.3)",
-              borderRadius: "12px",
-              padding: "24px",
-              textAlign: "center",
-              color: "var(--color-red)",
-              fontSize: "14px",
-            }}
-          >
+          <div className="border-2 border-error p-5 text-error font-black bg-error/10 uppercase tracking-tighter">
             {error}
           </div>
         ) : (
-          <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {/* Status card */}
-            <div
-              style={{
-                background: "var(--color-bg-secondary)",
-                border: `1px solid ${statusColor(submission.status)}40`,
-                borderRadius: "12px",
-                padding: "24px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
-                <div
-                  style={{
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "12px",
-                    background: `${statusColor(submission.status)}15`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "22px",
-                  }}
-                >
-                  {submission.status === "Accepted" ? "✅" : "❌"}
-                </div>
-                <div>
-                  <div
-                    style={{
-                      fontSize: "20px",
-                      fontWeight: "800",
-                      color: statusColor(submission.status),
-                    }}
-                  >
-                    {submission.status}
-                  </div>
-                  <div style={{ fontSize: "12px", color: "var(--color-text-muted)", marginTop: "2px" }}>
-                    {new Date(submission.createdAt).toLocaleString()}
-                  </div>
-                </div>
+          <div className="flex flex-col gap-6">
+            
+            {/* ── Status Banner ── */}
+            <div className={`bg-black border-2 border-border border-l-8 p-6 ${statusColorClass(submission.status).split(' ')[1]}`}>
+              <div className="text-[11px] font-black text-text-dim mb-2 uppercase tracking-widest">
+                EXECUTION_STATUS:
               </div>
-
-              {/* Stats grid */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-                  gap: "12px",
-                }}
-              >
-                <InfoCell label="Language" value={submission.language?.toUpperCase()} />
-                {submission.executionTime && (
-                  <InfoCell label="Runtime" value={submission.executionTime} />
-                )}
-                {submission.memoryUsed != null && (
-                  <InfoCell label="Memory" value={`${submission.memoryUsed} KB`} />
-                )}
-                {submission.failedTestCase != null && (
-                  <InfoCell label="Failed Test" value={`#${submission.failedTestCase}`} />
-                )}
+              <div className={`text-4xl font-black uppercase tracking-tighter ${statusTextColor(submission.status)}`}>
+                [{submission.status}]
               </div>
+              {submission.createdAt && (
+                <div className="text-[10px] text-text-muted mt-3 font-bold tracking-widest">
+                  TIMESTAMP: {new Date(submission.createdAt).toISOString().replace("T", " ").split(".")[0]}
+                </div>
+              )}
             </div>
 
-            {/* Output card */}
+            {/* ── Metrics Grid ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <MetricBox label="LANGUAGE" value={submission.language?.toUpperCase()} />
+              <MetricBox label="EXEC_TIME" value={submission.executionTime || "N/A"} />
+              <MetricBox label="MEM_USAGE" value={submission.memoryUsed != null ? `${submission.memoryUsed} KB` : "N/A"} />
+              {submission.failedTestCase != null && (
+                <MetricBox label="FAILED_UNIT" value={`TEST_#${submission.failedTestCase}`} colorClass="text-error" />
+              )}
+            </div>
+
+            {/* ── Log / Stdout ── */}
             {submission.output && (
-              <div
-                style={{
-                  background: "var(--color-bg-secondary)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    background: "var(--color-bg-tertiary)",
-                    padding: "12px 20px",
-                    fontSize: "12px",
-                    fontWeight: "700",
-                    color: "var(--color-text-muted)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    borderBottom: "1px solid var(--color-border)",
-                  }}
-                >
-                  Output / Error Log
+              <div className="border-2 border-border bg-black group">
+                <div className="terminal-header">
+                  LOG_OUTPUT // STDOUT_STDERR
                 </div>
-                <pre
-                  style={{
-                    padding: "16px 20px",
-                    fontSize: "13px",
-                    fontFamily: "'JetBrains Mono', monospace",
-                    color: submission.status === "Accepted" ? "var(--color-green)" : "var(--color-red)",
-                    margin: 0,
-                    overflowX: "auto",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-all",
-                    maxHeight: "300px",
-                    overflowY: "auto",
-                  }}
-                >
+                <pre className={`p-5 text-sm m-0 overflow-auto whitespace-pre-wrap break-all bg-[#050505] leading-relaxed custom-scrollbar max-h-[400px] ${submission.status === "Accepted" ? "text-success" : "text-error"}`}>
                   {submission.output}
                 </pre>
               </div>
             )}
+
+            <div className="border border-border p-4 text-center text-[10px] text-text-dim font-black uppercase tracking-[0.3em]">
+              END_OF_REPORT // CodeStage Systems Engineering
+            </div>
           </div>
         )}
       </main>
@@ -198,29 +121,11 @@ function Submission() {
   );
 }
 
-function InfoCell({ label, value }) {
+function MetricBox({ label, value, colorClass = "text-white" }) {
   return (
-    <div
-      style={{
-        background: "var(--color-bg-card)",
-        borderRadius: "8px",
-        padding: "12px 16px",
-        border: "1px solid var(--color-border)",
-      }}
-    >
-      <div style={{ fontSize: "11px", color: "var(--color-text-muted)", marginBottom: "4px", fontWeight: "600" }}>
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: "15px",
-          fontWeight: "700",
-          color: "var(--color-text-primary)",
-          fontFamily: "'JetBrains Mono', monospace",
-        }}
-      >
-        {value}
-      </div>
+    <div className="border-2 border-border p-4 bg-surface hover:border-accent/40 transition-colors">
+      <div className="text-[9px] text-text-dim font-black mb-1 tracking-widest">{label}</div>
+      <div className={`text-base font-black ${colorClass} tracking-tight`}>{value}</div>
     </div>
   );
 }

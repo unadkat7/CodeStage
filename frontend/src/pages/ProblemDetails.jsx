@@ -6,57 +6,44 @@ import SubmissionPanel from "../components/SubmissionPanel";
 import Navbar from "../components/Navbar";
 import { DifficultyBadge } from "../components/ProblemCard";
 import { useToast } from "../context/ToastContext";
-import ConfirmModal from "../components/ConfirmModal";
 
-/**
- * Polling interval in milliseconds
- */
 const POLL_INTERVAL = 2000;
 
 /**
- * ProblemDetails — full split-panel problem page.
- * Left: problem description, sample I/O, visible test cases, submission history.
- * Right: Monaco editor, language selector, submit button, result panel.
+ * ProblemDetails — Brutalist Coding Workspace refactored to clean Tailwind.
  */
 function ProblemDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Data
   const [problem, setProblem] = useState(null);
   const [stats, setStats] = useState(null);
   const [history, setHistory] = useState([]);
 
-  // Editor
   const [language, setLanguage] = useState(LANGUAGES[0].id);
   const [code, setCode] = useState(STARTER_CODE[LANGUAGES[0].id]);
 
-  // Submission
   const [submission, setSubmission] = useState(null);
   const [isPolling, setIsPolling] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("description"); // description | testcases | history
-  const [activePanel, setActivePanel] = useState("result"); // result (right bottom tab)
+  const [activeTab, setActiveTab] = useState("description");
 
   const { addToast } = useToast();
 
-  // Resizing state
-  const [leftWidth, setLeftWidth] = useState(45); // percentage
-  const [topHeight, setTopHeight] = useState(65); // percentage
+  const [leftWidth, setLeftWidth] = useState(38);
+  const [topHeight, setTopHeight] = useState(62);
   const [isResizingH, setIsResizingH] = useState(false);
   const [isResizingV, setIsResizingV] = useState(false);
-  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
-  // Refs for polling and containers
   const pollRef = useRef(null);
   const containerRef = useRef(null);
   const rightPanelRef = useRef(null);
 
-  // ── Fetch problem data ──────────────────────────────────────────────────────
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
@@ -66,46 +53,46 @@ function ProblemDetails() {
           problemsAPI.getStats(id),
           submissionsAPI.getHistory(id),
         ]);
-
         if (probRes.status === "fulfilled") setProblem(probRes.value.data);
         if (statsRes.status === "fulfilled") setStats(statsRes.value.data);
         if (histRes.status === "fulfilled") setHistory(histRes.value.data);
-      } catch (_) {
-        // Handled via null checks below
-      } finally {
-        setLoading(false);
-      }
+      } catch (_) {}
+      finally { setLoading(false); }
     };
-
     fetchAll();
-
-    return () => {
-      // Cleanup polling on unmount / route change
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [id]);
 
-  // ── Language change → reset to starter code ────────────────────────────────
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "Enter") {
+        e.preventDefault();
+        handleSubmit();
+      } else if (e.ctrlKey && !e.shiftKey && e.key === "Enter") {
+        e.preventDefault();
+        handleRun();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [code, language]);
+
   const handleLanguageChange = (newLang) => {
     setLanguage(newLang);
     setCode(STARTER_CODE[newLang] || "");
   };
 
-  // ── Polling logic ──────────────────────────────────────────────────────────
   const startPolling = useCallback((submissionId) => {
     setIsPolling(true);
-
     pollRef.current = setInterval(async () => {
       try {
         const res = await submissionsAPI.getById(submissionId);
         const data = res.data;
-
         if (data.status !== "Pending") {
           clearInterval(pollRef.current);
           setIsPolling(false);
           setSubmission(data);
-
-          // Refresh history + stats after result arrives
+          if (data.status === "Accepted") setSubmitSuccess(true);
           const [histRes, statsRes] = await Promise.allSettled([
             submissionsAPI.getHistory(id),
             problemsAPI.getStats(id),
@@ -120,92 +107,49 @@ function ProblemDetails() {
     }, POLL_INTERVAL);
   }, [id]);
 
-  // ── Submit code ─────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
-    if (!code.trim()) {
-      setSubmitError("Please write some code before submitting.");
-      return;
-    }
-
+    if (!code.trim()) { setSubmitError("ERROR: EMPTY_CODE_BLOCK"); return; }
     setSubmitError("");
     setSubmitting(true);
     setSubmission(null);
-    setActivePanel("result");
-
+    setSubmitSuccess(false);
     try {
-      const res = await submissionsAPI.create({
-        problemId: id,
-        code,
-        language,
-      });
-
-      // Immediately show "Pending" state
+      const res = await submissionsAPI.create({ problemId: id, code, language });
       setSubmission({ status: "Pending", _id: res.data.submissionId });
-      addToast("Submission queued! Judging...", "success");
       startPolling(res.data.submissionId);
     } catch (err) {
-      setSubmitError(
-        err.response?.data?.message || "Submission failed. Please try again."
-      );
-    } finally {
-      setSubmitting(false);
-    }
+      setSubmitError(err.response?.data?.message || "SUBMISSION_FAILED");
+    } finally { setSubmitting(false); }
   };
- 
-  // ── Run code (Visible Test Cases only) ──────────────────────────────────────
+
   const handleRun = async () => {
-    if (!code.trim()) {
-      setSubmitError("Please write some code before running.");
-      return;
-    }
- 
+    if (!code.trim()) { setSubmitError("ERROR: EMPTY_CODE_BLOCK"); return; }
     setSubmitError("");
     setIsRunning(true);
     setSubmission(null);
-    setActivePanel("result");
- 
+    setSubmitSuccess(false);
     try {
-      const res = await submissionsAPI.runCode({
-        problemId: id,
-        code,
-        language,
-      });
-      
-      // Unlike submit, run doesn't poll. We get the result immediately.
+      const res = await submissionsAPI.runCode({ problemId: id, code, language });
       setSubmission(res.data);
-      addToast("Code execution complete", "info");
     } catch (err) {
-      setSubmitError(
-        err.response?.data?.message || "Run failed. Please try again."
-      );
-    } finally {
-      setIsRunning(false);
-    }
+      setSubmitError(err.response?.data?.message || "EXEC_FAILURE");
+    } finally { setIsRunning(false); }
   };
 
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
-    addToast("Copied to clipboard", "success");
-  };
-
-  // ── Resizing Logic ─────────────────────────────────────────────────────────
   const startResizingH = useCallback(() => setIsResizingH(true), []);
   const startResizingV = useCallback(() => setIsResizingV(true), []);
-  const stopResizing = useCallback(() => {
-    setIsResizingH(false);
-    setIsResizingV(false);
-  }, []);
+  const stopResizing = useCallback(() => { setIsResizingH(false); setIsResizingV(false); }, []);
 
   const resize = useCallback((e) => {
     if (isResizingH && containerRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
-      if (newWidth > 20 && newWidth < 80) setLeftWidth(newWidth);
+      const rect = containerRef.current.getBoundingClientRect();
+      const newW = ((e.clientX - rect.left) / rect.width) * 100;
+      if (newW > 20 && newW < 80) setLeftWidth(newW);
     }
     if (isResizingV && rightPanelRef.current) {
-      const rightRect = rightPanelRef.current.getBoundingClientRect();
-      const newHeight = ((e.clientY - rightRect.top) / rightRect.height) * 100;
-      if (newHeight > 20 && newHeight < 85) setTopHeight(newHeight);
+      const rect = rightPanelRef.current.getBoundingClientRect();
+      const newH = ((e.clientY - rect.top) / rect.height) * 100;
+      if (newH > 15 && newH < 85) setTopHeight(newH);
     }
   }, [isResizingH, isResizingV]);
 
@@ -223,577 +167,184 @@ function ProblemDetails() {
     };
   }, [isResizingH, isResizingV, resize, stopResizing]);
 
-  // ── Loading skeleton ────────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <div style={{ minHeight: "100vh", background: "var(--color-bg-primary)" }}>
-        <Navbar />
-        <FullPageSkeleton />
-      </div>
-    );
-  }
+  if (loading) return <div className="h-screen bg-black text-accent p-8 font-mono text-xs animate-pulse tracking-widest">SCANNING_VIRTUAL_MACHINE...</div>;
 
-  // ── Problem not found ────────────────────────────────────────────────────────
-  if (!problem) {
-    return (
-      <div style={{ minHeight: "100vh", background: "var(--color-bg-primary)" }}>
-        <Navbar />
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: "60vh",
-            gap: "16px",
-          }}
-        >
-          <svg width="56" height="56" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--color-text-muted)", opacity: 0.4 }}>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <h2 style={{ fontSize: "20px", fontWeight: "700", color: "var(--color-text-primary)" }}>Problem not found</h2>
-          <button className="btn-secondary" onClick={() => navigate("/problems")}>← Back to Problems</button>
-        </div>
-      </div>
-    );
-  }
+  if (!problem) return <div className="h-screen bg-black text-error p-8 font-mono text-xs tracking-widest border-l-4 border-error">404_OBJECT_NOT_FOUND</div>;
 
-  // ── Main layout ─────────────────────────────────────────────────────────────
+  const isAnyBusy = submitting || isPolling || isRunning;
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "var(--color-bg-primary)",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <div className="h-screen bg-black flex flex-col overflow-hidden font-mono text-white">
       <Navbar />
 
       <div
         ref={containerRef}
-        style={{
-          flex: 1,
-          display: "flex",
-          overflow: "hidden",
-          height: "calc(100vh - 61px)",
-          position: "relative",
-          userSelect: (isResizingH || isResizingV) ? "none" : "auto",
-        }}
+        className={`flex-1 flex overflow-hidden ${isResizingH || isResizingV ? 'select-none' : 'select-auto'}`}
       >
-        {/* ── LEFT PANEL: Problem ───────────────────────────────────────────── */}
+        {/* ── LEFT: PROBLEM PANEL ── */}
         <div
-          style={{
-            width: `${leftWidth}%`,
-            minWidth: "300px",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            background: "var(--color-bg-primary)",
-          }}
+          className="flex flex-col border-r-2 border-border bg-black min-w-[300px]"
+          style={{ width: `${leftWidth}%` }}
         >
-          {/* Problem header */}
-          <div
-            style={{
-              padding: "20px 24px 0",
-              borderBottom: "1px solid var(--color-border)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "12px" }}>
-              <h1
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "700",
-                  color: "var(--color-text-primary)",
-                  margin: 0,
-                  flex: 1,
-                  lineHeight: "1.4",
-                }}
-              >
-                {problem.title}
-              </h1>
+          {/* Header */}
+          <div className="p-4 border-b-2 border-border">
+            <div className="flex justify-between items-start mb-2">
+              <h1 className="text-xl font-black uppercase tracking-tighter line-clamp-1">{problem.title}</h1>
               <DifficultyBadge difficulty={problem.difficulty} />
             </div>
-
-            {/* Stats row */}
             {stats && (
-              <div
-                style={{
-                  display: "flex",
-                  gap: "16px",
-                  marginBottom: "12px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <StatChip
-                  label="Submissions"
-                  value={stats.totalSubmissions}
-                  icon="📨"
-                />
-                <StatChip
-                  label="Accepted"
-                  value={stats.acceptedSubmissions}
-                  color="var(--color-green)"
-                  icon="✅"
-                />
-                <StatChip
-                  label="Acceptance"
-                  value={stats.acceptanceRate}
-                  color="var(--color-blue)"
-                  icon="📊"
-                />
+              <div className="flex gap-3 text-[10px] text-text-dim font-black uppercase tracking-tight">
+                <span>SOLVED: {stats.acceptedSubmissions}</span>
+                <span>ATTEMPTS: {stats.totalSubmissions}</span>
+                <span className="text-accent underline decoration-accent/30 decoration-2 underline-offset-4">RATE: {stats.acceptanceRate}</span>
               </div>
             )}
-
-            {/* Tabs */}
-            <div style={{ display: "flex", gap: "0" }}>
-              {["description", "testcases", "history"].map((tab) => (
-                <TabButton
-                  key={tab}
-                  active={activeTab === tab}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab === "description" ? "Description" : tab === "testcases" ? "Test Cases" : `History (${history.length})`}
-                </TabButton>
-              ))}
-            </div>
           </div>
 
-          {/* Tab content */}
-          <div style={{ flex: 1, overflow: "auto", padding: "20px 24px" }}>
-            {activeTab === "description" && (
-              <DescriptionTab problem={problem} />
-            )}
-            {activeTab === "testcases" && (
-              <TestCasesTab testCases={problem.testCases} />
-            )}
-            {activeTab === "history" && (
-              <HistoryTab history={history} />
-            )}
+          {/* Tab Bar */}
+          <div className="flex bg-surface border-b border-border">
+            {["description", "testcases", "history"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 text-[10px] font-black uppercase border-r border-border cursor-pointer transition-colors ${
+                  activeTab === tab ? "bg-black text-accent border-b border-b-accent" : "text-text-muted hover:bg-black/40"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-auto p-5 custom-scrollbar">
+            {activeTab === "description" && <DescriptionTab problem={problem} />}
+            {activeTab === "testcases"   && <TestCasesTab testCases={problem.testCases} />}
+            {activeTab === "history"     && <HistoryTab history={history} />}
           </div>
         </div>
 
-        {/* Horizontal Resizer (Vertical bar) */}
-        <div
-          onMouseDown={startResizingH}
-          style={{
-            width: "4px",
-            cursor: "col-resize",
-            background: isResizingH ? "var(--color-blue)" : "transparent",
-            transition: "background 0.2s",
-            zIndex: 10,
-            borderLeft: "1px solid var(--color-border)",
-          }}
-          onMouseEnter={(e) => { if (!isResizingH) e.target.style.background = "rgba(88, 166, 255, 0.3)"; }}
-          onMouseLeave={(e) => { if (!isResizingH) e.target.style.background = "transparent"; }}
+        {/* Resizer H */}
+        <div 
+          onMouseDown={startResizingH} 
+          className="w-1 cursor-col-resize hover:bg-accent transition-colors active:bg-accent h-full"
         />
 
-        {/* ── RIGHT PANEL: Editor & Results ─────────────────────────────────── */}
+        {/* ── RIGHT: EDITOR + OUTPUT ── */}
         <div
           ref={rightPanelRef}
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            minWidth: 0,
-            background: "var(--color-bg-primary)",
-          }}
+          className="flex-1 flex flex-col min-w-0"
         >
-          {/* Editor toolbar */}
-          <div
-            style={{
-              padding: "12px 20px",
-              borderBottom: "1px solid var(--color-border)",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              background: "var(--color-bg-secondary)",
-              flexWrap: "wrap",
-            }}
+          {/* Top Panel: Editor */}
+          <div 
+            className="flex flex-col min-h-[100px]"
+            style={{ height: `${topHeight}%` }}
           >
-            {/* Language selector */}
-            <select
-              id="language-selector"
-              value={language}
-              onChange={(e) => handleLanguageChange(e.target.value)}
-              style={{
-                background: "var(--color-bg-card)",
-                border: "1px solid var(--color-border)",
-                color: "var(--color-text-primary)",
-                padding: "7px 12px",
-                borderRadius: "7px",
-                fontSize: "13px",
-                fontFamily: "'JetBrains Mono', monospace",
-                fontWeight: "500",
-                cursor: "pointer",
-                outline: "none",
-                appearance: "none",
-                paddingRight: "28px",
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238b949e'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`,
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "right 8px center",
-                backgroundSize: "14px",
-                minWidth: "140px",
-              }}
-            >
-              {LANGUAGES.map((lang) => (
-                <option key={lang.id} value={lang.id}>
-                  {lang.label}
-                </option>
-              ))}
-            </select>
-
-            {/* Spacer */}
-            <div style={{ flex: 1 }} />
-
-            {/* Reset code */}
-            <button
-              id="reset-code-btn"
-              onClick={() => setIsResetModalOpen(true)}
-              className="btn-secondary"
-              style={{ padding: "7px 14px", fontSize: "13px" }}
-              title="Reset to starter code"
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Reset
-            </button>
-
-            {/* Run button */}
-            <button
-              id="run-code-btn"
-              onClick={handleRun}
-              disabled={submitting || isPolling || isRunning}
-              className="btn-secondary"
-              style={{ padding: "7px 20px", fontSize: "13px" }}
-            >
-              {isRunning ? (
-                <>
-                  <div className="spinner" style={{ width: "14px", height: "14px" }} />
-                  Running…
-                </>
-              ) : (
-                <>
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Run
-                </>
-              )}
-            </button>
-
-            {/* Submit button */}
-            <button
-              id="submit-code-btn"
-              onClick={handleSubmit}
-              disabled={submitting || isPolling || isRunning}
-              className="btn-primary"
-              style={{ padding: "7px 20px", fontSize: "13px" }}
-            >
-              {submitting || isPolling ? (
-                <>
-                  <div className="spinner" style={{ width: "14px", height: "14px" }} />
-                  {submitting ? "Submitting…" : "Judging…"}
-                </>
-              ) : (
-                <>
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                  </svg>
-                  Submit
-                </>
-              )}
-            </button>
+            <div className="px-4 py-1.5 bg-surface border-b border-border flex justify-between items-center z-10">
+              <select
+                value={language}
+                onChange={(e) => handleLanguageChange(e.target.value)}
+                className="bg-black text-accent border border-border text-[10px] font-black px-2 py-0.5 outline-none focus:border-accent appearance-none cursor-pointer hover:bg-border/20 transition-colors"
+                style={{ backgroundImage: 'linear-gradient(45deg, transparent 50%, var(--color-accent) 50%), linear-gradient(135deg, var(--color-accent) 50%, transparent 50%)', backgroundPosition: 'calc(100% - 15px) calc(1em + 2px), calc(100% - 10px) calc(1em + 2px)', backgroundSize: '5px 5px, 5px 5px', backgroundRepeat: 'no-repeat' }}
+              >
+                {LANGUAGES.map((l) => <option key={l.id} value={l.id} className="bg-black">{l.label.toUpperCase()}</option>)}
+              </select>
+              
+              <div className="flex gap-2.5">
+                <button 
+                  onClick={handleRun} 
+                  disabled={isAnyBusy}
+                  className="btn-brutal-secondary h-7 px-3 text-[9px]"
+                >
+                  {isRunning ? "RUNNING..." : "RUN_CODE"}
+                </button>
+                <button 
+                  onClick={handleSubmit} 
+                  disabled={isAnyBusy}
+                  className="btn-brutal h-7 px-3 text-[9px]"
+                >
+                  {submitting || isPolling ? "JUDGING..." : submitSuccess ? "[ACCEPTED]" : "SUBMIT_UNIT"}
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-hidden">
+              <CodeEditor code={code} setCode={setCode} language={language} height="100%" />
+            </div>
           </div>
 
-          {/* Monaco Editor */}
-          <div style={{ height: `${topHeight}%`, minHeight: "150px", display: "flex", flexDirection: "column", padding: "0 20px 10px" }}>
-            <CodeEditor code={code} setCode={setCode} language={language} height="100%" />
-          </div>
-
-          {/* Vertical Resizer (Horizontal bar) */}
-          <div
-            onMouseDown={startResizingV}
-            style={{
-              height: "4px",
-              cursor: "row-resize",
-              background: isResizingV ? "var(--color-blue)" : "transparent",
-              transition: "background 0.2s",
-              zIndex: 10,
-              borderTop: "1px solid var(--color-border)",
-              flexShrink: 0,
-            }}
-            onMouseEnter={(e) => { if (!isResizingV) e.target.style.background = "rgba(88, 166, 255, 0.3)"; }}
-            onMouseLeave={(e) => { if (!isResizingV) e.target.style.background = "transparent"; }}
+          {/* Resizer V */}
+          <div 
+            onMouseDown={startResizingV} 
+            className="h-1 cursor-row-resize hover:bg-accent transition-colors active:bg-accent border-y border-border"
           />
 
-          {/* Submit error banner */}
-          {submitError && (
-            <div
-              className="fade-in"
-              style={{
-                margin: "0 20px",
-                background: "rgba(248, 81, 73, 0.08)",
-                border: "1px solid rgba(248, 81, 73, 0.3)",
-                borderRadius: "8px",
-                padding: "10px 14px",
-                fontSize: "13px",
-                color: "var(--color-red)",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              {submitError}
+          {/* Bottom Panel: Output */}
+          <div className="flex-1 bg-black overflow-hidden flex flex-col">
+            <div className="terminal-header">
+              STDOUT // TERMINAL_OUTPUT
             </div>
-          )}
-
-          {/* Result panel */}
-          <div
-            style={{
-              flex: 1,
-              padding: "16px 20px",
-              overflow: "auto",
-              borderTop: "1px solid var(--color-border)",
-              background: "var(--color-bg-secondary)",
-              minHeight: "120px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "12px",
-                fontWeight: "600",
-                color: "var(--color-text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                marginBottom: "12px",
-              }}
-            >
-              Result
+            <div className="flex-1 overflow-auto p-4 custom-scrollbar">
+              {submitError && (
+                <div className="text-error font-black text-xs mb-3 border border-error p-3 bg-error/10 uppercase tracking-tighter">
+                  ERROR: {submitError}
+                </div>
+              )}
+              <SubmissionPanel submission={submission} isPolling={isPolling} isRunning={isRunning} />
             </div>
-            <SubmissionPanel submission={submission} isPolling={isPolling} isRunning={isRunning} />
           </div>
         </div>
       </div>
-
-      <ConfirmModal 
-        isOpen={isResetModalOpen}
-        title="Reset Code?"
-        message="Are you sure you want to reset your code to the starter template? All your current changes for this problem will be lost."
-        confirmText="Reset Code"
-        variant="danger"
-        onCancel={() => setIsResetModalOpen(false)}
-        onConfirm={() => {
-          setCode(STARTER_CODE[language] || "");
-          setIsResetModalOpen(false);
-          addToast("Code reset to template", "info");
-        }}
-      />
     </div>
   );
 }
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
-function TabButton({ active, onClick, children }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        padding: "8px 16px",
-        fontSize: "13px",
-        fontWeight: "500",
-        cursor: "pointer",
-        border: "none",
-        background: "transparent",
-        color: active ? "var(--color-blue)" : "var(--color-text-muted)",
-        borderBottom: active ? "2px solid var(--color-blue)" : "2px solid transparent",
-        transition: "all 0.15s",
-        marginBottom: "-1px",
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function StatChip({ label, value, color = "var(--color-text-secondary)", icon }) {
-  return (
-    <span style={{ fontSize: "12px", color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
-      {icon}{" "}
-      <span style={{ color, fontWeight: "600" }}>{value}</span>{" "}
-      {label}
-    </span>
-  );
-}
+// ── Tabs ──
 
 function DescriptionTab({ problem }) {
   return (
-    <div className="fade-in">
-      <div
-        style={{
-          fontSize: "14px",
-          lineHeight: "1.75",
-          color: "var(--color-text-primary)",
-          marginBottom: "24px",
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {problem.description}
-      </div>
-
+    <div className="font-mono text-xs leading-relaxed text-text-muted space-y-6">
+      <div className="whitespace-pre-wrap">{problem.description}</div>
+      
       {problem.sampleInput && (
-        <div style={{ marginBottom: "20px" }}>
-          <h3
-            style={{
-              fontSize: "13px",
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              color: "var(--color-text-muted)",
-              marginBottom: "8px",
-            }}
-          >
-            Sample Input
-          </h3>
-          <pre
-            style={{
-              background: "var(--color-bg-card)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "8px",
-              padding: "14px 16px",
-              fontSize: "13px",
-              fontFamily: "'JetBrains Mono', monospace",
-              color: "var(--color-text-primary)",
-              overflow: "auto",
-              margin: 0,
-              lineHeight: "1.6",
-            }}
-          >
-            {problem.sampleInput}
-          </pre>
-        </div>
+        <section>
+          <div className="text-[10px] font-black text-accent mb-1.5 tracking-widest">// SAMPLE_INPUT</div>
+          <pre className="bg-[#050505] border border-border p-3 text-xs text-text overflow-auto select-all">{problem.sampleInput}</pre>
+        </section>
       )}
-
+      
       {problem.sampleOutput && (
-        <div style={{ marginBottom: "20px" }}>
-          <h3
-            style={{
-              fontSize: "13px",
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              color: "var(--color-text-muted)",
-              marginBottom: "8px",
-            }}
-          >
-            Sample Output
-          </h3>
-          <pre
-            style={{
-              background: "var(--color-bg-card)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "8px",
-              padding: "14px 16px",
-              fontSize: "13px",
-              fontFamily: "'JetBrains Mono', monospace",
-              color: "var(--color-green)",
-              overflow: "auto",
-              margin: 0,
-              lineHeight: "1.6",
-            }}
-          >
-            {problem.sampleOutput}
-          </pre>
-        </div>
+        <section>
+          <div className="text-[10px] font-black text-success mb-1.5 tracking-widest">// SAMPLE_OUTPUT</div>
+          <pre className="bg-[#050505] border border-border p-3 text-xs text-success overflow-auto select-all">{problem.sampleOutput}</pre>
+        </section>
+      )}
+      
+      {problem.constraints && (
+        <section className="bg-surface/30 p-3 border-l-2 border-border">
+          <div className="text-[10px] font-black text-text-dim mb-1.5 tracking-widest uppercase">// CONSTRAINTS</div>
+          <p className="whitespace-pre-wrap text-[11px] text-text-dim font-bold">{problem.constraints}</p>
+        </section>
       )}
     </div>
   );
 }
 
 function TestCasesTab({ testCases }) {
-  if (!testCases || testCases.length === 0) {
-    return (
-      <div className="fade-in" style={{ color: "var(--color-text-muted)", fontSize: "14px", paddingTop: "20px" }}>
-        No visible test cases for this problem.
-      </div>
-    );
-  }
-
+  if (!testCases || testCases.length === 0) return <div className="text-text-dim text-xs font-black">// NO_VISUAL_TEST_CASES_FOUND</div>;
   return (
-    <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <div className="space-y-4">
       {testCases.map((tc, i) => (
-        <div
-          key={i}
-          style={{
-            border: "1px solid var(--color-border)",
-            borderRadius: "10px",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              background: "var(--color-bg-tertiary)",
-              padding: "8px 14px",
-              fontSize: "12px",
-              fontWeight: "600",
-              color: "var(--color-text-muted)",
-              borderBottom: "1px solid var(--color-border)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               <span>Test Case {i + 1}</span>
-               <button 
-                 onClick={() => handleCopy(tc.input)}
-                 style={{ background: "none", border: "none", color: "var(--color-blue)", fontSize: "11px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", padding: "0" }}
-               >
-                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                 Copy Input
-               </button>
+        <div key={i} className="border border-border p-3 group hover:border-accent/40 transition-colors">
+          <div className="text-[9px] font-black text-text-dim mb-2 uppercase tracking-widest">TEST_CASE_{i + 1}</div>
+          <div className="grid grid-cols-2 gap-3 mt-1">
+            <div className="space-y-1">
+              <div className="text-[8px] font-black text-text-muted flex items-center gap-1.5"><span className="w-1 h-1 bg-text-muted"></span> INPUT</div>
+              <pre className="bg-[#080808] p-2 text-[11px] border border-border overflow-auto max-h-32 select-all">{tc.input}</pre>
             </div>
-          </div>
-          <div style={{ padding: "12px 14px" }}>
-            <div style={{ marginBottom: "10px" }}>
-              <div style={{ fontSize: "11px", color: "var(--color-text-muted)", marginBottom: "4px", fontWeight: "600" }}>INPUT</div>
-              <pre
-                style={{
-                  background: "var(--color-bg-primary)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "6px",
-                  padding: "10px 12px",
-                  fontSize: "12px",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  color: "var(--color-text-primary)",
-                  margin: 0,
-                  overflow: "auto",
-                }}
-              >
-                {tc.input}
-              </pre>
-            </div>
-            <div>
-              <div style={{ fontSize: "11px", color: "var(--color-text-muted)", marginBottom: "4px", fontWeight: "600" }}>EXPECTED OUTPUT</div>
-              <pre
-                style={{
-                  background: "var(--color-bg-primary)",
-                  border: "1px solid rgba(63, 185, 80, 0.2)",
-                  borderRadius: "6px",
-                  padding: "10px 12px",
-                  fontSize: "12px",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  color: "var(--color-green)",
-                  margin: 0,
-                  overflow: "auto",
-                }}
-              >
-                {tc.output}
-              </pre>
+            <div className="space-y-1">
+              <div className="text-[8px] font-black text-success flex items-center gap-1.5"><span className="w-1 h-1 bg-success"></span> EXPECTED</div>
+              <pre className="bg-[#080808] p-2 text-[11px] border border-border text-success overflow-auto max-h-32 select-all">{tc.output}</pre>
             </div>
           </div>
         </div>
@@ -803,100 +354,24 @@ function TestCasesTab({ testCases }) {
 }
 
 function HistoryTab({ history }) {
-  if (!history || history.length === 0) {
-    return (
-      <div className="fade-in" style={{ paddingTop: "20px", textAlign: "center", color: "var(--color-text-muted)", fontSize: "14px" }}>
-        <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ margin: "0 auto 10px", opacity: 0.4 }}>
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        No submissions yet for this problem.
-      </div>
-    );
-  }
-
-  const statusColor = (s) => {
-    if (s === "Accepted") return "var(--color-green)";
-    if (s === "Pending") return "var(--color-yellow)";
-    return "var(--color-red)";
-  };
-
+  if (!history || history.length === 0) return <div className="text-text-dim text-xs font-black">// NO_SUBMISSION_HISTORY_FOUND</div>;
   return (
-    <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      {history.map((sub) => (
-        <div
-          key={sub._id}
-          style={{
-            background: "var(--color-bg-card)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "8px",
-            padding: "12px 16px",
-            display: "flex",
-            gap: "12px",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              background: statusColor(sub.status),
-              flexShrink: 0,
-            }}
-          />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-              <span style={{ fontWeight: "600", fontSize: "13px", color: statusColor(sub.status) }}>
-                {sub.status}
-              </span>
-              <span
-                style={{
-                  fontSize: "11px",
-                  background: "var(--color-bg-tertiary)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "4px",
-                  padding: "1px 6px",
-                  color: "var(--color-text-muted)",
-                  fontFamily: "'JetBrains Mono', monospace",
-                }}
-              >
-                {sub.language?.toUpperCase()}
-              </span>
-            </div>
-            <div style={{ fontSize: "11px", color: "var(--color-text-muted)", marginTop: "4px" }}>
-              {sub.executionTime && `${sub.executionTime} ms`}
-              {sub.executionTime && sub.memoryUsed ? " · " : ""}
-              {sub.memoryUsed ? `${sub.memoryUsed} KB` : ""}
-              {(sub.executionTime || sub.memoryUsed) ? " · " : ""}
-              {new Date(sub.createdAt).toLocaleString()}
-            </div>
+    <div className="space-y-2">
+      {history.map((sub, i) => (
+        <div key={i} className="border border-border px-4 py-2.5 flex justify-between items-center hover:bg-surface/20 transition-colors cursor-pointer group">
+          <span className={`text-[11px] font-black uppercase tracking-tight ${sub.status === "Accepted" ? "text-success" : "text-error"}`}>
+            [{sub.status}]
+          </span>
+          <div className="flex items-center gap-4">
+             <span className="text-[10px] text-text-dim group-hover:text-text transition-colors">
+               {sub.executionTime || "0ms"} / {(sub.memoryUsed / 1024).toFixed(1)}MB
+             </span>
+             <span className="text-[9px] text-text-dim opacity-40">
+               {new Date(sub.createdAt).toLocaleDateString()}
+             </span>
           </div>
         </div>
       ))}
-    </div>
-  );
-}
-
-function FullPageSkeleton() {
-  return (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        height: "calc(100vh - 61px)",
-        overflow: "hidden",
-      }}
-    >
-      <div style={{ width: "45%", borderRight: "1px solid var(--color-border)", padding: "24px" }}>
-        <div className="skeleton" style={{ height: "28px", width: "60%", marginBottom: "16px" }} />
-        <div className="skeleton" style={{ height: "18px", width: "30%", marginBottom: "24px" }} />
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="skeleton" style={{ height: "14px", marginBottom: "10px", width: `${70 + (i % 3) * 10}%` }} />
-        ))}
-      </div>
-      <div style={{ flex: 1, padding: "16px" }}>
-        <div className="skeleton" style={{ height: "380px", borderRadius: "10px" }} />
-      </div>
     </div>
   );
 }

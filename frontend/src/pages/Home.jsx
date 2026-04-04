@@ -6,8 +6,7 @@ import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 
 /**
- * Home — personal dashboard and introduction page.
- * Shows a hero section, site stats, and a small curated list of problems.
+ * Home — Brutalist Developer Dashboard refactored to clean Tailwind.
  */
 function Home() {
   const { user } = useAuth();
@@ -15,276 +14,150 @@ function Home() {
 
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchProblems = async () => {
+    const fetch = async () => {
       try {
         const res = await problemsAPI.getAll();
         setProblems(res.data);
-      } catch (err) {
-        setError("Failed to load featured problems.");
-      } finally {
-        setLoading(false);
-      }
+      } catch (_) {}
+      finally { setLoading(false); }
     };
-    fetchProblems();
+    fetch();
   }, []);
 
-  // Curate 2 Easy, 2 Medium, 1 Hard
-  const curated = (() => {
-    const easy = problems.filter(p => p.difficulty?.toLowerCase() === "easy").slice(0, 2);
-    const medium = problems.filter(p => p.difficulty?.toLowerCase() === "medium").slice(0, 2);
-    const hard = problems.filter(p => p.difficulty?.toLowerCase() === "hard").slice(0, 1);
-    return [...easy, ...medium, ...hard];
-  })();
-
-  // Calculate Stats
   const stats = (() => {
-    const total = problems.length;
-    const solved = problems.filter(p => p.isSolved).length;
-    const easySolved = problems.filter(p => p.difficulty?.toLowerCase() === "easy" && p.isSolved).length;
-    const mediumSolved = problems.filter(p => p.difficulty?.toLowerCase() === "medium" && p.isSolved).length;
-    const hardSolved = problems.filter(p => p.difficulty?.toLowerCase() === "hard" && p.isSolved).length;
-    
-    return {
-      total,
-      solved,
-      remaining: total - solved,
-      rate: total > 0 ? Math.round((solved / total) * 100) : 0,
-      easy: easySolved,
-      medium: mediumSolved,
-      hard: hardSolved
-    };
+    const total  = problems.length;
+    const solved = problems.filter((p) => p.isSolved).length;
+    const easy   = problems.filter((p) => p.difficulty?.toLowerCase() === "easy" && p.isSolved).length;
+    const medium = problems.filter((p) => p.difficulty?.toLowerCase() === "medium" && p.isSolved).length;
+    const hard   = problems.filter((p) => p.difficulty?.toLowerCase() === "hard" && p.isSolved).length;
+    return { total, solved, remaining: total - solved, rate: total > 0 ? Math.round((solved / total) * 100) : 0, easy, medium, hard };
   })();
 
-  // Rank / Badge Logic
-  const getRank = (solved) => {
-    if (solved >= 50) return { name: "Legend", color: "#ff8c00", icon: "👑" };
-    if (solved >= 25) return { name: "Knight", color: "#58a6ff", icon: "⚔️" };
-    if (solved >= 10) return { name: "Guardian", color: "#3fb950", icon: "🛡️" };
-    return { name: "Novice", color: "#8b949e", icon: "🌱" };
-  };
-  const rank = getRank(stats.solved);
-
-  // Dynamic Greeting
-  const greeting = (() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
-  })();
-
-  // Problem to Resume (First unsolved)
-  const resumeProblem = problems.find(p => !p.isSolved);
+  const curated = problems.slice(0, 6);
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--color-bg-primary)" }}>
+    <div className="min-h-screen bg-black flex flex-col font-mono">
       <Navbar />
 
-      <main style={{ maxWidth: "1000px", margin: "0 auto", padding: "60px 24px" }}>
-        {/* Hero Section */}
-        <section className="fade-in" style={{ textAlign: "center", marginBottom: "64px" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.05)", padding: "6px 14px", borderRadius: "100px", marginBottom: "20px", border: "1px solid var(--color-border)" }}>
-            <span style={{ fontSize: "14px" }}>{rank.icon}</span>
-            <span style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em", color: rank.color }}>{rank.name} Rank</span>
+      <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
+        
+        {/* ── Header ── */}
+        <header className="mb-10 border-l-4 border-accent pl-5">
+          <div className="text-[10px] text-text-dim font-black mb-1 uppercase tracking-widest">
+            SYSTEM_ACCESS_GRANTED // SESSION_ACTIVE
           </div>
-          <h1 style={{ 
-            fontSize: "48px", 
-            fontWeight: "800", 
-            letterSpacing: "-0.04em", 
-            marginBottom: "16px",
-            background: "linear-gradient(135deg, #fff 0%, #8b949e 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}>
-            {greeting}, {user?.name}
+          <h1 className="text-3xl font-black text-white uppercase tracking-tighter">
+            WELCOME_BACK, <span className="text-accent">{user?.name?.toUpperCase()}</span>
           </h1>
-          <p style={{ 
-            fontSize: "18px", 
-            color: "var(--color-text-secondary)", 
-            maxWidth: "600px", 
-            margin: "0 auto 32px" 
-          }}>
-            Sharpen your coding skills, master algorithms, and track your progress all in one place. Ready for your next challenge?
-          </p>
-          <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
-            {resumeProblem ? (
-              <button 
-                onClick={() => navigate(`/problems/${resumeProblem._id}`)} 
-                className="btn-primary" 
-                style={{ padding: "12px 28px", fontSize: "16px", display: "flex", alignItems: "center", gap: "8px" }}
-              >
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                Resume: {resumeProblem.title}
-              </button>
-            ) : (
-              <button onClick={() => navigate("/problems")} className="btn-primary" style={{ padding: "12px 28px", fontSize: "16px" }}>
-                Browse All Problems
-              </button>
-            )}
-            <button onClick={() => navigate("/problems")} className="btn-secondary" style={{ padding: "12px 28px", fontSize: "16px" }}>
-              Explore Library
+          <div className="mt-2 text-xs text-text-muted font-bold tracking-tight">
+            STATUS: [SOLVED: {stats.solved}] [REMAINING: {stats.remaining}] [EFFICIENCY: {stats.rate}%]
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* ── Left Column: Challenges ── */}
+          <section className="lg:col-span-2">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-sm font-black uppercase tracking-widest">
+                AVAILABLE_CHALLENGES
+              </h2>
+              <Link to="/problems" className="text-accent text-[10px] font-black hover:underline">
+                [ VIEW_ALL_SYSTEMS ]
+              </Link>
+            </div>
+
+            <div className="border-2 border-border bg-black overflow-hidden">
+              {loading ? (
+                <div className="p-10 text-center text-text-dim text-xs font-black animate-pulse">
+                  LOADING_DATA_STREAM...
+                </div>
+              ) : (
+                <table className="w-full border-collapse">
+                   <thead className="border-b-2 border-border bg-surface">
+                    <tr>
+                      <th className="px-4 py-2.5 text-[10px] font-black text-text-dim uppercase text-left border-r border-border w-12">#ID</th>
+                      <th className="px-4 py-2.5 text-[10px] font-black text-text-dim uppercase text-left">SYSTEM_OBJECTIVE</th>
+                      <th className="px-4 py-2.5 text-[10px] font-black text-text-dim uppercase text-center w-24">COMPLEXITY</th>
+                      <th className="px-4 py-2.5 text-[10px] font-black text-text-dim uppercase text-right w-20"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {curated.map((p, i) => (
+                      <ProblemCard key={p._id} problem={p} index={i} />
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </section>
+
+          {/* ── Right Column: Stats ── */}
+          <aside className="flex flex-col gap-6">
+            
+            <div className="card-brutal p-5">
+              <h3 className="text-[11px] font-black mb-4 border-b border-border pb-2 text-text-muted tracking-widest">
+                CORE_METRICS
+              </h3>
+              <div className="flex flex-col gap-4">
+                <MetricRow label="TOTAL_SOLVED" value={stats.solved} colorClass="text-success" />
+                <MetricRow label="COMPLETION" value={`${stats.rate}%`} colorClass="text-accent" />
+                <div className="h-1 bg-border mt-1">
+                  <div className="h-full bg-accent transition-all duration-500" style={{ width: `${stats.rate}%` }} />
+                </div>
+              </div>
+            </div>
+
+            <div className="card-brutal p-5">
+              <h3 className="text-[11px] font-black mb-4 border-b border-border pb-2 text-text-muted tracking-widest">
+                DIFFICULTY_BREAKDOWN
+              </h3>
+              <div className="flex flex-col gap-2.5">
+                <SmallMetric label="EASY" count={stats.easy} colorClass="text-success" borderColorClass="border-success/30" />
+                <SmallMetric label="MEDIUM" count={stats.medium} colorClass="text-yellow-500" borderColorClass="border-yellow-500/30" />
+                <SmallMetric label="HARD" count={stats.hard} colorClass="text-error" borderColorClass="border-error/30" />
+              </div>
+            </div>
+
+            <button 
+              className="card-brutal-accent p-5 text-left group hover:bg-accent transition-colors duration-100"
+              onClick={() => navigate("/problems")}
+            >
+              <div className="font-black text-sm group-hover:text-black tracking-tighter">EXECUTE_NEURAL_DRILL</div>
+              <div className="text-[10px] mt-1 text-text-muted group-hover:text-black/80 font-bold uppercase tracking-tight">
+                Initiate next unsolved algorithm challenge.
+              </div>
             </button>
-          </div>
-        </section>
 
-        {/* Stats Grid */}
-        <section style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", 
-          gap: "24px", 
-          marginBottom: "80px" 
-        }}>
-          <InfoCard 
-            title="Total Solved" 
-            value={stats.solved} 
-            desc={`${stats.remaining} problems left to solve`} 
-            icon={<svg width="24" height="24" fill="none" stroke="var(--color-green)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-          />
-          
-          <div className="card-hover" style={{ 
-            background: "var(--color-bg-secondary)", 
-            border: "1px solid var(--color-border)", 
-            borderRadius: "12px", 
-            padding: "24px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px"
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Difficulty Split</span>
-              <svg width="20" height="20" fill="none" stroke="var(--color-purple)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
-              <DifficultyStat label="Easy" solved={stats.easy} color="var(--color-green)" />
-              <DifficultyStat label="Med" solved={stats.medium} color="var(--color-yellow)" />
-              <DifficultyStat label="Hard" solved={stats.hard} color="var(--color-red)" />
-            </div>
-          </div>
-
-          <div className="card-hover" style={{ 
-            background: "var(--color-bg-secondary)", 
-            border: "1px solid var(--color-border)", 
-            borderRadius: "12px", 
-            padding: "24px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between"
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-              <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Completion Rate</span>
-              <span style={{ fontSize: "20px", fontWeight: "800", color: "var(--color-blue)" }}>{stats.rate}%</span>
-            </div>
-            <div style={{ position: "relative", height: "8px", background: "rgba(255,255,255,0.05)", borderRadius: "4px", overflow: "hidden" }}>
-              <div style={{ 
-                position: "absolute", 
-                left: 0, 
-                top: 0, 
-                height: "100%", 
-                width: `${stats.rate}%`, 
-                background: "var(--color-blue)", 
-                borderRadius: "4px",
-                transition: "width 1s ease-out" 
-              }} />
-            </div>
-            <div style={{ marginTop: "12px", fontSize: "12px", color: "var(--color-text-muted)" }}>
-              {stats.solved} / {stats.total} challenges completed
-            </div>
-          </div>
-        </section>
-
-        {/* Curated Problems */}
-        <section>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "24px" }}>
-            <div>
-              <h2 style={{ fontSize: "24px", fontWeight: "700", marginBottom: "4px" }}>Daily Challenges</h2>
-              <p style={{ color: "var(--color-text-secondary)", margin: 0 }}>A balanced set of problems to keep you sharp.</p>
-            </div>
-            <Link to="/problems" style={{ color: "var(--color-blue)", textDecoration: "none", fontSize: "14px", fontWeight: "600" }}>
-              Explore more →
-            </Link>
-          </div>
-
-          <div style={{ 
-            background: "var(--color-bg-secondary)", 
-            border: "1px solid var(--color-border)", 
-            borderRadius: "12px", 
-            overflow: "hidden" 
-          }}>
-            {loading ? (
-              <div style={{ padding: "40px", textAlign: "center", color: "var(--color-text-muted)" }}>Loading featured problems...</div>
-            ) : curated.length === 0 ? (
-              <div style={{ padding: "40px", textAlign: "center", color: "var(--color-text-muted)" }}>No problems found.</div>
-            ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid var(--color-border)", background: "var(--color-bg-tertiary)" }}>
-                    <th style={thStyle}>#</th>
-                    <th style={{ ...thStyle, textAlign: "left" }}>Title</th>
-                    <th style={{ ...thStyle, textAlign: "left" }}>Difficulty</th>
-                    <th style={thStyle}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {curated.map((problem, index) => (
-                    <ProblemCard key={problem._id} problem={problem} index={index} />
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-          
-          <div style={{ marginTop: "24px", textAlign: "center" }}>
-             <button onClick={() => navigate("/problems")} className="btn-secondary" style={{ width: "100%", padding: "14px", fontWeight: "600" }}>
-                Explore All {problems.length} Problems
-             </button>
-          </div>
-        </section>
+          </aside>
+        </div>
       </main>
+
+      <footer className="p-6 border-t border-border text-center text-[10px] text-text-dim font-black tracking-[0.2em]">
+        CODESTAGE_V4.0 // AGGRESSIVE_INTERRUPT // © 2026
+      </footer>
     </div>
   );
 }
 
-function InfoCard({ title, value, desc, icon }) {
+function MetricRow({ label, value, colorClass }) {
   return (
-    <div className="card-hover" style={{ 
-      background: "var(--color-bg-secondary)", 
-      border: "1px solid var(--color-border)", 
-      borderRadius: "12px", 
-      padding: "24px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "12px"
-    }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{title}</span>
-        {icon}
-      </div>
-      <div>
-        <div style={{ fontSize: "28px", fontWeight: "800", color: "var(--color-text-primary)" }}>{value}</div>
-        <div style={{ fontSize: "13px", color: "var(--color-text-muted)" }}>{desc}</div>
-      </div>
+    <div className="flex justify-between items-end">
+      <span className="text-[10px] font-black text-text-dim tracking-widest">{label}</span>
+      <span className={`text-2xl font-black leading-none ${colorClass}`}>{value}</span>
     </div>
   );
 }
 
-function DifficultyStat({ label, solved, color }) {
+function SmallMetric({ label, count, colorClass, borderColorClass }) {
   return (
-    <div style={{ flex: 1, textAlign: "center", padding: "10px", background: "rgba(255,255,255,0.02)", borderRadius: "8px" }}>
-       <div style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: "4px" }}>{label}</div>
-       <div style={{ fontSize: "18px", fontWeight: "700", color: color }}>{solved}</div>
+    <div className={`flex justify-between items-center border border-border px-3 py-2 bg-black hover:${borderColorClass} transition-colors group`}>
+      <span className="text-[9px] font-black text-text-muted group-hover:text-white transition-colors">{label}</span>
+      <span className={`text-xs font-black ${colorClass}`}>{count}</span>
     </div>
   );
 }
-
-const thStyle = {
-  padding: "12px 20px",
-  fontSize: "12px",
-  fontWeight: "600",
-  color: "var(--color-text-muted)",
-  textTransform: "uppercase",
-  letterSpacing: "0.06em",
-};
 
 export default Home;

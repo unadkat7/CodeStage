@@ -33,7 +33,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-6 font-mono">
+    <div className="min-h-screen bg-mesh-brutal flex items-center justify-center p-6 font-mono text-white">
       <div className="w-full max-w-[380px]">
         
         {/* ── Logo + Header ── */}

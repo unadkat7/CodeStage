@@ -38,7 +38,7 @@ function Home() {
   const curated = problems.slice(0, 6);
 
   return (
-    <div className="min-h-screen bg-black flex flex-col font-mono">
+    <div className="min-h-screen bg-mesh-brutal flex flex-col font-mono text-white">
       <Navbar />
 
       <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">

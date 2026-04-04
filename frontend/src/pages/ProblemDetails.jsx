@@ -10,35 +10,49 @@ import { useToast } from "../context/ToastContext";
 const POLL_INTERVAL = 2000;
 
 /**
- * ProblemDetails — Brutalist Coding Workspace refactored to clean Tailwind.
+ * ProblemDetails — Brutalist Coding Workspace with Terminal-Stage Returns.
+ * This architecture ensures 100% stable hook ordering across all loading/error states.
  */
 function ProblemDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToast } = useToast();
 
+  // 1. DATA STATE
   const [problem, setProblem] = useState(null);
   const [stats, setStats] = useState(null);
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 2. EDITOR STATE
   const [language, setLanguage] = useState(LANGUAGES[0].id);
   const [code, setCode] = useState(STARTER_CODE[LANGUAGES[0].id]);
+
+  // 3. SUBMISSION / EXECUTION STATE
   const [submission, setSubmission] = useState(null);
   const [isPolling, setIsPolling] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [loading, setLoading] = useState(true);
+
+  // 4. UI / LAYOUT STATE
   const [activeTab, setActiveTab] = useState("description");
   const [leftWidth, setLeftWidth] = useState(38);
   const [topHeight, setTopHeight] = useState(62);
   const [isResizingH, setIsResizingH] = useState(false);
   const [isResizingV, setIsResizingV] = useState(false);
+  const [spinnerIdx, setSpinnerIdx] = useState(0);
 
+  // 5. REFS
   const pollRef = useRef(null);
   const containerRef = useRef(null);
   const rightPanelRef = useRef(null);
 
+  // 6. DERIVED STATE
+  const isAnyBusy = submitting || isPolling || isRunning;
+
+  // 7. EFFECTS
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
@@ -86,10 +100,21 @@ function ProblemDetails() {
     };
   }, [isResizingH, isResizingV]);
 
-  const handleLanguageChange = (newLang) => {
+  useEffect(() => {
+    let interval;
+    if (isAnyBusy) {
+      interval = setInterval(() => setSpinnerIdx((s) => (s + 1) % 4), 100);
+    } else {
+      setSpinnerIdx(0);
+    }
+    return () => clearInterval(interval);
+  }, [isAnyBusy]);
+
+  // 8. CALLBACKS
+  const handleLanguageChange = useCallback((newLang) => {
     setLanguage(newLang);
     setCode(STARTER_CODE[newLang] || "");
-  };
+  }, []);
 
   const startPolling = useCallback((submissionId) => {
     setIsPolling(true);
@@ -116,7 +141,7 @@ function ProblemDetails() {
     }, POLL_INTERVAL);
   }, [id]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!code.trim()) { setSubmitError("ERROR: EMPTY_CODE_BLOCK"); return; }
     setSubmitError("");
     setSubmitting(true);
@@ -129,9 +154,9 @@ function ProblemDetails() {
     } catch (err) {
       setSubmitError(err.response?.data?.message || "SUBMISSION_FAILED");
     } finally { setSubmitting(false); }
-  };
+  }, [code, id, language, startPolling]);
 
-  const handleRun = async () => {
+  const handleRun = useCallback(async () => {
     if (!code.trim()) { setSubmitError("ERROR: EMPTY_CODE_BLOCK"); return; }
     setSubmitError("");
     setIsRunning(true);
@@ -143,7 +168,7 @@ function ProblemDetails() {
     } catch (err) {
       setSubmitError(err.response?.data?.message || "EXEC_FAILURE");
     } finally { setIsRunning(false); }
-  };
+  }, [code, id, language]);
 
   const startResizingH = useCallback(() => setIsResizingH(true), []);
   const startResizingV = useCallback(() => setIsResizingV(true), []);
@@ -162,11 +187,12 @@ function ProblemDetails() {
     }
   }, [isResizingH, isResizingV]);
 
+  // ── 9. TERMINAL-STAGE RETURNS ──
+  // These must stay below ALL hook calls to prevent "Rule of Hooks" violations.
   if (loading) return <div className="h-screen bg-black text-accent p-8 font-mono text-xs animate-pulse tracking-widest">SCANNING_VIRTUAL_MACHINE...</div>;
-
   if (!problem) return <div className="h-screen bg-black text-error p-8 font-mono text-xs tracking-widest border-l-4 border-error">404_OBJECT_NOT_FOUND</div>;
 
-  const isAnyBusy = submitting || isPolling || isRunning;
+  const spinnerFrame = ["/", "-", "\\", "|"][spinnerIdx];
 
   return (
     <div className="h-screen bg-black flex flex-col overflow-hidden font-mono text-white">
@@ -251,14 +277,14 @@ function ProblemDetails() {
                   disabled={isAnyBusy}
                   className="btn-brutal-secondary h-7 px-3 text-[9px]"
                 >
-                  {isRunning ? "RUNNING..." : "RUN_CODE"}
+                  {isRunning ? `[ ${spinnerFrame} ] RUNNING...` : "RUN_CODE"}
                 </button>
                 <button 
                   onClick={handleSubmit} 
                   disabled={isAnyBusy}
                   className="btn-brutal h-7 px-3 text-[9px]"
                 >
-                  {submitting || isPolling ? "JUDGING..." : submitSuccess ? "[ACCEPTED]" : "SUBMIT_UNIT"}
+                  {submitting || isPolling ? `[ ${spinnerFrame} ] JUDGING...` : submitSuccess ? "[ACCEPTED]" : "SUBMIT_UNIT"}
                 </button>
               </div>
             </div>

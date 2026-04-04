@@ -69,7 +69,7 @@ function Problems() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col font-mono text-white">
+    <div className="min-h-screen bg-mesh-brutal flex flex-col font-mono text-white">
       <Navbar />
 
       <main className="flex-1 p-8 max-w-5xl mx-auto w-full">

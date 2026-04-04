@@ -74,12 +74,12 @@ function ProblemDetails() {
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key === "Enter") {
-        e.preventDefault();
-        handleSubmit();
-      } else if (e.ctrlKey && !e.shiftKey && e.key === "Enter") {
+      if (e.ctrlKey && e.key === "'") {
         e.preventDefault();
         handleRun();
+      } else if (e.ctrlKey && e.key === "Enter") {
+        e.preventDefault();
+        handleSubmit();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -195,7 +195,7 @@ function ProblemDetails() {
   const spinnerFrame = ["/", "-", "\\", "|"][spinnerIdx];
 
   return (
-    <div className="h-screen bg-black flex flex-col overflow-hidden font-mono text-white">
+    <div className="h-screen bg-mesh-brutal flex flex-col overflow-hidden font-mono text-white">
       <Navbar />
 
       <div

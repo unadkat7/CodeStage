@@ -15,26 +15,21 @@ const POLL_INTERVAL = 2000;
 function ProblemDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const [problem, setProblem] = useState(null);
   const [stats, setStats] = useState(null);
   const [history, setHistory] = useState([]);
-
   const [language, setLanguage] = useState(LANGUAGES[0].id);
   const [code, setCode] = useState(STARTER_CODE[LANGUAGES[0].id]);
-
   const [submission, setSubmission] = useState(null);
   const [isPolling, setIsPolling] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
-
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("description");
-
-  const { addToast } = useToast();
-
   const [leftWidth, setLeftWidth] = useState(38);
   const [topHeight, setTopHeight] = useState(62);
   const [isResizingH, setIsResizingH] = useState(false);
@@ -76,6 +71,20 @@ function ProblemDetails() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [code, language]);
+
+  useEffect(() => {
+    if (isResizingH || isResizingV) {
+      window.addEventListener("mousemove", resize);
+      window.addEventListener("mouseup", stopResizing);
+    } else {
+      window.removeEventListener("mousemove", resize);
+      window.removeEventListener("mouseup", stopResizing);
+    }
+    return () => {
+      window.removeEventListener("mousemove", resize);
+      window.removeEventListener("mouseup", stopResizing);
+    };
+  }, [isResizingH, isResizingV]);
 
   const handleLanguageChange = (newLang) => {
     setLanguage(newLang);
@@ -152,20 +161,6 @@ function ProblemDetails() {
       if (newH > 15 && newH < 85) setTopHeight(newH);
     }
   }, [isResizingH, isResizingV]);
-
-  useEffect(() => {
-    if (isResizingH || isResizingV) {
-      window.addEventListener("mousemove", resize);
-      window.addEventListener("mouseup", stopResizing);
-    } else {
-      window.removeEventListener("mousemove", resize);
-      window.removeEventListener("mouseup", stopResizing);
-    }
-    return () => {
-      window.removeEventListener("mousemove", resize);
-      window.removeEventListener("mouseup", stopResizing);
-    };
-  }, [isResizingH, isResizingV, resize, stopResizing]);
 
   if (loading) return <div className="h-screen bg-black text-accent p-8 font-mono text-xs animate-pulse tracking-widest">SCANNING_VIRTUAL_MACHINE...</div>;
 

@@ -66,7 +66,7 @@ backend/
 ## 🚀 Setup
 
 1. Clone repo  
-git clone https://github.com/your-username/codestage.git  
+git clone https://github.com/unadkat7/codestage.git  
 cd codestage  
 
 2. Install dependencies  

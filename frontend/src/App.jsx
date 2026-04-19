@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -9,6 +10,40 @@ import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import RouteLoader from "./components/RouteLoader";
+
+/**
+ * TransitionManager — Listens for route changes and shows the loader.
+ */
+function TransitionManager({ children }) {
+  const location = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Start loading on path change
+    setIsLoading(true);
+
+    // Fixed 3 second delay
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
+  return (
+    <>
+      {isLoading && <RouteLoader />}
+      {/* 
+          We keep the children rendered but only visible when not loading.
+          This ensures hooks/redirects inside pages can still run in the background.
+      */}
+      <div className={isLoading ? "invisible h-0 overflow-hidden" : "visible"}>
+        {children}
+      </div>
+    </>
+  );
+}
 
 /**
  * App — root routing component.
@@ -25,60 +60,61 @@ import ProtectedRoute from "./components/ProtectedRoute";
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Default redirect */}
-        {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/home" replace />} />
+      <TransitionManager>
+        <Routes>
+          {/* Default redirect */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
 
-        {/* Public routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+          {/* Public routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
-        {/* Protected routes */}
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/problems"
-          element={
-            <ProtectedRoute>
-              <Problems />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/problems/:id"
-          element={
-            <ProtectedRoute>
-              <ProblemDetails />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/submission/:submissionId"
-          element={
-            <ProtectedRoute>
-              <Submission />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
+          {/* Protected routes */}
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/problems"
+            element={
+              <ProtectedRoute>
+                <Problems />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/problems/:id"
+            element={
+              <ProtectedRoute>
+                <ProblemDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/submission/:submissionId"
+            element={
+              <ProtectedRoute>
+                <Submission />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </TransitionManager>
     </BrowserRouter>
   );
 }

@@ -140,4 +140,27 @@
     from { background-position: 0% 0%, 0 0, 0 0; }
     to { background-position: 10% 10%, 0 0, 0 0; }
   }
+
+  /* ── Route Transition Animations ── */
+  @keyframes glitch-text {
+    0% { transform: translate(0); text-shadow: none; }
+    20% { transform: translate(-2px, 1px); text-shadow: 2px 0 var(--color-accent), -1px 0 var(--color-error); }
+    40% { transform: translate(2px, -1px); text-shadow: -2px 0 var(--color-accent), 1px 0 var(--color-error); }
+    60% { transform: translate(-2px, 1px); }
+    80% { transform: translate(2px, -1px); }
+    100% { transform: translate(0); }
+  }
+
+  .glitch-active {
+    animation: glitch-text 0.3s infinite;
+  }
+
+  @keyframes bar-grow {
+    0% { width: 0%; }
+    100% { width: 100%; }
+  }
+
+  .loading-bar-fill {
+    animation: bar-grow 3s linear infinite;
+  }
 }

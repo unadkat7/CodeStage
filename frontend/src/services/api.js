@@ -100,3 +100,29 @@ export const submissionsAPI = {
    */
   runCode: (data) => API.post("/submissions/run", data),
 };
+
+// ─── User Profile API ─────────────────────────────────────────────────────────
+export const userAPI = {
+  /**
+   * GET /users/profile  [Auth required]
+   * Returns: { user, stats, languages, heatmap, badges, recentActivity }
+   */
+  getProfile: () => API.get("/users/profile"),
+
+  /**
+   * PUT /users/profile  [Auth required]
+   * Body: { bio?, location?, githubUrl?, linkedinUrl?, websiteUrl? }
+   * Returns: { message, user }
+   */
+  updateProfile: (data) => API.put("/users/profile", data),
+
+  /**
+   * POST /users/upload-avatar  [Auth required]
+   * Body: FormData { avatar: File }
+   * Returns: { message, profilePicture, user }
+   */
+  uploadAvatar: (formData) =>
+    API.post("/users/upload-avatar", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+};

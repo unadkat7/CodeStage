@@ -20,6 +20,31 @@ const userSchema = new mongoose.Schema(
       enum: ["candidate", "interviewer", "admin"],
       default: "candidate",
     },
+    bio: {
+      type: String,
+      default: "",
+      maxlength: 300,
+    },
+    location: {
+      type: String,
+      default: "",
+    },
+    githubUrl: {
+      type: String,
+      default: "",
+    },
+    linkedinUrl: {
+      type: String,
+      default: "",
+    },
+    websiteUrl: {
+      type: String,
+      default: "",
+    },
+    profilePicture: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

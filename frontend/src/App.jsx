@@ -6,6 +6,7 @@ import Problems from "./pages/Problems";
 import ProblemDetails from "./pages/ProblemDetails";
 import Submission from "./pages/Submission";
 import Home from "./pages/Home";
+import Profile from "./pages/Profile";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -63,6 +64,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Submission />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />

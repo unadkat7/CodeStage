@@ -32,6 +32,7 @@ function Navbar() {
         <div className="flex items-center gap-8">
           <NavLink to="/home" label="HOME" />
           <NavLink to="/problems" label="PROBLEMS" />
+          <NavLink to="/profile" label="PROFILE" />
         </div>
 
         {/* ── User Actions ── */}

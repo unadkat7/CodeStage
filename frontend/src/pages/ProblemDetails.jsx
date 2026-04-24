@@ -8,6 +8,7 @@ import { DifficultyBadge } from "../components/ProblemCard";
 import { useToast } from "../context/ToastContext";
 
 const POLL_INTERVAL = 2000;
+const DRAFT_KEY_PREFIX = "codestage_draft_";
 
 /**
  * ProblemDetails — Brutalist Coding Workspace with Terminal-Stage Returns.
@@ -24,9 +25,22 @@ function ProblemDetails() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 2. EDITOR STATE
-  const [language, setLanguage] = useState(LANGUAGES[0].id);
-  const [code, setCode] = useState(STARTER_CODE[LANGUAGES[0].id]);
+  // 2. EDITOR STATE — Restore draft from localStorage if available
+  const [language, setLanguage] = useState(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY_PREFIX + id);
+      if (saved) return JSON.parse(saved).language || LANGUAGES[0].id;
+    } catch {}
+    return LANGUAGES[0].id;
+  });
+  const [code, setCode] = useState(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY_PREFIX + id);
+      if (saved) return JSON.parse(saved).code || STARTER_CODE[LANGUAGES[0].id];
+    } catch {}
+    return STARTER_CODE[LANGUAGES[0].id];
+  });
+  const [draftSaved, setDraftSaved] = useState(false);
 
   // 3. SUBMISSION / EXECUTION STATE
   const [submission, setSubmission] = useState(null);
@@ -110,11 +124,29 @@ function ProblemDetails() {
     return () => clearInterval(interval);
   }, [isAnyBusy]);
 
+  // 7b. AUTO-SAVE DRAFT — persist code to localStorage on every change
+  useEffect(() => {
+    // Only save if the user has actually typed something different from the starter code
+    const draft = JSON.stringify({ code, language });
+    localStorage.setItem(DRAFT_KEY_PREFIX + id, draft);
+    setDraftSaved(true);
+    const timer = setTimeout(() => setDraftSaved(false), 1500);
+    return () => clearTimeout(timer);
+  }, [code, language, id]);
+
   // 8. CALLBACKS
   const handleLanguageChange = useCallback((newLang) => {
     setLanguage(newLang);
     setCode(STARTER_CODE[newLang] || "");
-  }, []);
+    // Clear draft when switching language so the new starter code takes effect
+    localStorage.removeItem(DRAFT_KEY_PREFIX + id);
+  }, [id]);
+
+  const handleResetCode = useCallback(() => {
+    setCode(STARTER_CODE[language] || "");
+    localStorage.removeItem(DRAFT_KEY_PREFIX + id);
+    addToast("Code reset to default template", "info");
+  }, [language, id, addToast]);
 
   const startPolling = useCallback((submissionId) => {
     setIsPolling(true);
@@ -271,7 +303,20 @@ function ProblemDetails() {
                 {LANGUAGES.map((l) => <option key={l.id} value={l.id} className="bg-black">{l.label.toUpperCase()}</option>)}
               </select>
               
-              <div className="flex gap-2.5">
+              <div className="flex items-center gap-2.5">
+                {draftSaved && (
+                  <span className="text-[9px] font-black text-success/60 tracking-widest animate-pulse">
+                    [DRAFT_SAVED]
+                  </span>
+                )}
+                <button
+                  onClick={handleResetCode}
+                  disabled={isAnyBusy}
+                  className="btn-brutal-secondary h-7 px-3 text-[9px]"
+                  title="Reset code to default template"
+                >
+                  RESET_CODE
+                </button>
                 <button 
                   onClick={handleRun} 
                   disabled={isAnyBusy}

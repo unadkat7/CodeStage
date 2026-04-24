@@ -12,38 +12,7 @@ import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RouteLoader from "./components/RouteLoader";
 
-/**
- * TransitionManager — Listens for route changes and shows the loader.
- */
-function TransitionManager({ children }) {
-  const location = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Start loading on path change
-    setIsLoading(true);
-
-    // Fixed 3 second delay
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2500);
-
-    return () => clearTimeout(timer);
-  }, [location.pathname]);
-
-  return (
-    <>
-      {isLoading && <RouteLoader />}
-      {/* 
-          We keep the children rendered but only visible when not loading.
-          This ensures hooks/redirects inside pages can still run in the background.
-      */}
-      <div className={isLoading ? "invisible h-0 overflow-hidden" : "visible"}>
-        {children}
-      </div>
-    </>
-  );
-}
 
 /**
  * App — root routing component.
@@ -60,7 +29,6 @@ function TransitionManager({ children }) {
 function App() {
   return (
     <BrowserRouter>
-      <TransitionManager>
         <Routes>
           {/* Default redirect */}
           <Route path="/" element={<Navigate to="/home" replace />} />
@@ -114,7 +82,6 @@ function App() {
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
-      </TransitionManager>
     </BrowserRouter>
   );
 }

@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { userAPI } from "../services/api";
 import { useToast } from "../context/ToastContext";
 import Navbar from "../components/Navbar";
+import RouteLoader from "../components/RouteLoader";
 
 const BACKEND_URL = "http://localhost:5000"; // For static file serving
 
@@ -94,18 +95,7 @@ function Profile() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-mesh-brutal flex flex-col font-mono text-white">
-        <Navbar />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-text-dim text-xs font-black animate-pulse tracking-widest">
-            LOADING_PROFILE_DATA...
-          </div>
-        </main>
-      </div>
-    );
-  }
+  if (loading) return <RouteLoader />;
 
   const { user: u, stats, languages, heatmap, badges, recentActivity } =
     profile || {};

@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authAPI } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
+import RouteLoader from "../components/RouteLoader";
 
 /**
  * Login Page — Brutalist Sign-In refactored to clean Tailwind.
@@ -34,6 +35,7 @@ function Login() {
 
   return (
     <div className="min-h-screen bg-mesh-brutal flex items-center justify-center p-6 font-mono text-white">
+      {loading && <RouteLoader />}
       <div className="w-full max-w-[380px]">
         
         {/* ── Logo + Header ── */}

@@ -4,7 +4,6 @@ const authMiddleware = require("../middleware/auth.middleware.js");
 const {
   getAllProblems,
   getProblemById,
-  createProblem,
   getProblemStats,
 } = require("../controllers/problem.controller.js");
 
@@ -16,6 +15,6 @@ router.get("/:id", getProblemById);
 
 
 
-router.post("/", createProblem);
+
 
 module.exports = router;

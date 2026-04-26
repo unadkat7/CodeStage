@@ -126,3 +126,18 @@ export const userAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
 };
+
+// ─── Leaderboard API ──────────────────────────────────────────────────────────
+export const leaderboardAPI = {
+  /**
+   * GET /leaderboard  [Auth required]
+   * Returns: [{ userId, name, profilePicture, solvedCount }]
+   */
+  getOverall: () => API.get("/leaderboard"),
+
+  /**
+   * GET /leaderboard/daily  [Auth required]
+   * Returns: [{ userId, name, profilePicture, solvedCount }]
+   */
+  getDaily: () => API.get("/leaderboard/daily"),
+};

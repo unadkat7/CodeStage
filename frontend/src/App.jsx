@@ -8,6 +8,7 @@ import ProblemDetails from "./pages/ProblemDetails";
 import Submission from "./pages/Submission";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
+import Leaderboard from "./pages/Leaderboard";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import RouteLoader from "./components/RouteLoader";
@@ -67,6 +68,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Submission />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute>
+                <Leaderboard />
               </ProtectedRoute>
             }
           />

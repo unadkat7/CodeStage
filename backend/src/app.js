@@ -4,6 +4,7 @@ const problemRoutes = require("./routes/problem.routes.js");
 const submissionRoutes = require("./routes/submission.routes.js");
 const authRoutes = require("./routes/auth.routes.js");
 const userRoutes = require("./routes/user.routes.js");
+const leaderboardRoutes = require("./routes/leaderboard.routes.js");
 
 const path = require("path");
 const fs = require("fs");
@@ -26,6 +27,7 @@ app.use("/api/users", userRoutes);
 
 app.use("/api/problems", problemRoutes);
 app.use("/api/submissions", submissionRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend is running");
